@@ -1299,11 +1299,15 @@ class _CustomerProfileDetailsState extends State<CustomerProfileDetails> {
             children: <Widget>[
               Row(
                 children: [
-                  MtCustomfontBold(
-                    color: Mycolors.white,
-                    text: customer!.nickname,
-                    fontsize:
-                        customer!.isAccountDeletedbyAdmin == true ? 15 : 19.5,
+                  Expanded(
+                    child: MtCustomfontBold(
+                      color: Mycolors.white,
+                      text: customer!.nickname,
+                      overflow: TextOverflow.ellipsis,
+                      maxlines: 1,
+                      fontsize:
+                          customer!.isAccountDeletedbyAdmin == true ? 15 : 19.5,
+                    ),
                   ),
                   SizedBox(width: 10),
                   customer!.isAccountDeletedbyAdmin == true
@@ -1359,11 +1363,15 @@ class _CustomerProfileDetailsState extends State<CustomerProfileDetails> {
                 children: [
                   Icon(Icons.account_box, color: Colors.white, size: 15),
                   SizedBox(width: 10),
-                  MtCustomfontRegular(
-                    text:
-                        '${getTranslatedForCurrentUser(this.context, 'xxidxx')} ${customer!.id}',
-                    color: Mycolors.whitelight,
-                    fontsize: 13,
+                  Expanded(
+                    child: MtCustomfontRegular(
+                      text:
+                          '${getTranslatedForCurrentUser(this.context, 'xxidxx')} ${customer!.id}',
+                      overflow: TextOverflow.ellipsis,
+                      maxlines: 1,
+                      color: Mycolors.whitelight,
+                      fontsize: 13,
+                    ),
                   ),
                 ],
               ),
@@ -1380,16 +1388,20 @@ class _CustomerProfileDetailsState extends State<CustomerProfileDetails> {
                           children: [
                             Icon(Icons.email, color: Colors.white, size: 15),
                             SizedBox(width: 10),
-                            MtCustomfontRegular(
-                              text: customer!.email == ""
-                                  ? ""
-                                  : AppConstants.isdemomode == true
-                                      ? '*${customer!.email.substring(1, 4)}********'
-                                      : '${customer!.email}',
-                              color: Mycolors.whitelight,
-                              fontsize: 13,
+                            Expanded(
+                              child: MtCustomfontRegular(
+                                text: customer!.email == ""
+                                    ? ""
+                                    : AppConstants.isdemomode == true
+                                        ? '*${customer!.email.substring(1, 4)}********'
+                                        : '${customer!.email}',
+                                overflow: TextOverflow.ellipsis,
+                                maxlines: 1,
+                                color: Mycolors.whitelight,
+                                fontsize: 13,
+                              ),
                             ),
-                            SizedBox(width: 20),
+                            SizedBox(width: 10),
                             CircleAvatar(
                                 backgroundColor: Mycolors.secondary,
                                 radius: 12,
@@ -1417,16 +1429,20 @@ class _CustomerProfileDetailsState extends State<CustomerProfileDetails> {
                           children: [
                             Icon(Icons.phone, color: Colors.white, size: 15),
                             SizedBox(width: 10),
-                            MtCustomfontRegular(
-                              text: customer!.phone == ""
-                                  ? ""
-                                  : AppConstants.isdemomode == true
-                                      ? '${customer!.phone.substring(0, 6)}********'
-                                      : '${customer!.phone}',
-                              color: Mycolors.whitelight,
-                              fontsize: 13,
+                            Expanded(
+                              child: MtCustomfontRegular(
+                                text: customer!.phone == ""
+                                    ? ""
+                                    : AppConstants.isdemomode == true
+                                        ? '${customer!.phone.substring(0, 6)}********'
+                                        : '${customer!.phone}',
+                                overflow: TextOverflow.ellipsis,
+                                maxlines: 1,
+                                color: Mycolors.whitelight,
+                                fontsize: 13,
+                              ),
                             ),
-                            SizedBox(width: 20),
+                            SizedBox(width: 10),
                             CircleAvatar(
                                 backgroundColor: Mycolors.secondary,
                                 radius: 12,

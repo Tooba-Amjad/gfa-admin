@@ -1032,10 +1032,15 @@ class _AgentProfileDetailsState extends State<AgentProfileDetails> {
             children: <Widget>[
               Row(
                 children: [
-                  MtCustomfontBold(
-                    color: Mycolors.white,
-                    text: agent!.nickname,
-                    fontsize: agent!.isAccountDeletedbyAdmin == true ? 15 : 19.5,
+                  Expanded(
+                    child: MtCustomfontBold(
+                      color: Mycolors.white,
+                      text: agent!.nickname,
+                      overflow: TextOverflow.ellipsis,
+                      maxlines: 1,
+                      fontsize:
+                          agent!.isAccountDeletedbyAdmin == true ? 15 : 19.5,
+                    ),
                   ),
                   SizedBox(width: 10),
                   agent!.isAccountDeletedbyAdmin == true
@@ -1089,10 +1094,15 @@ class _AgentProfileDetailsState extends State<AgentProfileDetails> {
                 children: [
                   Icon(Icons.account_box, color: Colors.white, size: 15),
                   SizedBox(width: 10),
-                  MtCustomfontRegular(
-                    text: '${getTranslatedForCurrentUser(this.context, 'xxidxx')} ${agent!.id}',
-                    color: Mycolors.whitelight,
-                    fontsize: 13,
+                  Expanded(
+                    child: MtCustomfontRegular(
+                      text:
+                          '${getTranslatedForCurrentUser(this.context, 'xxidxx')} ${agent!.id}',
+                      overflow: TextOverflow.ellipsis,
+                      maxlines: 1,
+                      color: Mycolors.whitelight,
+                      fontsize: 13,
+                    ),
                   ),
                 ],
               ),
@@ -1108,16 +1118,20 @@ class _AgentProfileDetailsState extends State<AgentProfileDetails> {
                           children: [
                             Icon(Icons.email, color: Colors.white, size: 15),
                             SizedBox(width: 10),
-                            MtCustomfontRegular(
-                              text: agent!.email == ""
-                                  ? ""
-                                  : AppConstants.isdemomode == true
-                                      ? '*${agent!.email.substring(1, 4)}********'
-                                      : '${agent!.email}',
-                              color: Mycolors.whitelight,
-                              fontsize: 13,
+                            Expanded(
+                              child: MtCustomfontRegular(
+                                text: agent!.email == ""
+                                    ? ""
+                                    : AppConstants.isdemomode == true
+                                        ? '*${agent!.email.substring(1, 4)}********'
+                                        : '${agent!.email}',
+                                overflow: TextOverflow.ellipsis,
+                                maxlines: 1,
+                                color: Mycolors.whitelight,
+                                fontsize: 13,
+                              ),
                             ),
-                            SizedBox(width: 20),
+                            SizedBox(width: 10),
                             CircleAvatar(
                                 backgroundColor: Mycolors.secondary,
                                 radius: 12,
@@ -1142,16 +1156,20 @@ class _AgentProfileDetailsState extends State<AgentProfileDetails> {
                           children: [
                             Icon(Icons.phone, color: Colors.white, size: 15),
                             SizedBox(width: 10),
-                            MtCustomfontRegular(
-                              text: agent!.phone == ""
-                                  ? ""
-                                  : AppConstants.isdemomode == true
-                                      ? '${agent!.phone.substring(0, 6)}********'
-                                      : '${agent!.phone}',
-                              color: Mycolors.whitelight,
-                              fontsize: 13,
+                            Expanded(
+                              child: MtCustomfontRegular(
+                                text: agent!.phone == ""
+                                    ? ""
+                                    : AppConstants.isdemomode == true
+                                        ? '${agent!.phone.substring(0, 6)}********'
+                                        : '${agent!.phone}',
+                                overflow: TextOverflow.ellipsis,
+                                maxlines: 1,
+                                color: Mycolors.whitelight,
+                                fontsize: 13,
+                              ),
                             ),
-                            SizedBox(width: 20),
+                            SizedBox(width: 10),
                             CircleAvatar(
                                 backgroundColor: Mycolors.secondary,
                                 radius: 12,
