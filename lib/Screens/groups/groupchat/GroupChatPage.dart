@@ -287,6 +287,8 @@ class _GroupChatPageState extends State<GroupChatPage>
           style: TextStyle(fontSize: 13, fontWeight: FontWeight.w400),
         ),
       ));
+    } else if (doc[Dbkeys.groupmsgTYPE] == MessageType.rROBOTcallHistory.index) {
+      return buildCallHistoryMessage(doc);
     } else if (doc[Dbkeys.groupmsgTYPE] == MessageType.image.index ||
         doc[Dbkeys.groupmsgTYPE] == MessageType.doc.index ||
         doc[Dbkeys.groupmsgTYPE] == MessageType.text.index ||
@@ -298,6 +300,128 @@ class _GroupChatPageState extends State<GroupChatPage>
     }
 
     return Text(doc[Dbkeys.groupmsgCONTENT]);
+  }
+
+  Widget buildCallHistoryMessage(Map<String, dynamic> doc) {
+    var registry = Provider.of<UserRegistry>(this.context, listen: false);
+
+    // If data is already present, use it
+    if (doc.containsKey('ISVIDEOCALL') || doc.containsKey('isVideoCall')) {
+      return Center(
+        child: Container(
+          margin: EdgeInsets.symmetric(vertical: 10),
+          padding: EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: Colors.blue[50],
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: _buildGroupCallUI(doc, registry),
+        ),
+      );
+    }
+
+    return Center(
+      child: Container(
+        margin: EdgeInsets.symmetric(vertical: 10),
+        padding: EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Colors.blue[50],
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: FutureBuilder<DocumentSnapshot>(
+          future: FirebaseFirestore.instance
+              .collection(DbPaths.collectionagents)
+              .doc(doc[Dbkeys.groupmsgSENDBY])
+              .collection(DbPaths.collectioncallhistory)
+              .doc(doc[Dbkeys.groupmsgTIME].toString())
+              .get(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Text(getTranslatedForCurrentUser(this.context, 'xxloadingxx'),
+                  style: TextStyle(fontSize: 12, color: Colors.grey));
+            }
+            if (!snapshot.hasData || !snapshot.data!.exists) {
+              return Text(
+                  getTranslatedForCurrentUser(this.context, 'xxaudiocallxx'),
+                  style: TextStyle(fontSize: 12, color: Colors.blueGrey));
+            }
+            var callData = snapshot.data!.data() as Map<String, dynamic>;
+            return _buildGroupCallUI(callData, registry,
+                overrideSender: doc[Dbkeys.groupmsgSENDBY]);
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGroupCallUI(Map<String, dynamic> callData, UserRegistry registry,
+      {String? overrideSender}) {
+    bool isVideo = callData['ISVIDEOCALL'] ?? callData['isVideoCall'] ?? false;
+    var started = callData['STARTED'] ?? callData['started'] ?? callData['createdAt'];
+    var ended = callData['ENDED'] ?? callData['ended'];
+
+    DateTime? startTime = started is int
+        ? DateTime.fromMillisecondsSinceEpoch(started)
+        : (started is Timestamp ? started.toDate() : null);
+    DateTime? endTime = ended is int
+        ? DateTime.fromMillisecondsSinceEpoch(ended)
+        : (ended is Timestamp ? ended.toDate() : null);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isVideo ? Icons.videocam : Icons.call,
+              size: 16,
+              color: Colors.blue,
+            ),
+            SizedBox(width: 8),
+            Text(
+              isVideo
+                  ? getTranslatedForCurrentUser(this.context, 'xxvideocallxx')
+                  : getTranslatedForCurrentUser(this.context, 'xxaudiocallxx'),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+            ),
+          ],
+        ),
+        SizedBox(height: 5),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              callData['TYPE'] == 'INCOMING'
+                  ? (startTime == null ? Icons.call_missed : Icons.call_received)
+                  : Icons.call_made,
+              size: 14,
+              color: callData['TYPE'] == 'INCOMING' && startTime == null
+                  ? Colors.red
+                  : Colors.green,
+            ),
+            SizedBox(width: 5),
+            Text(
+              startTime == null
+                  ? (callData['TYPE'] == 'INCOMING'
+                      ? getTranslatedForCurrentUser(this.context, 'xxmissedcallxx')
+                      : getTranslatedForCurrentUser(this.context, 'xxunansweredxx'))
+                  : (endTime != null
+                      ? endTime.difference(startTime).inMinutes < 1
+                          ? endTime.difference(startTime).inSeconds.toString() + 's'
+                          : endTime.difference(startTime).inMinutes.toString() + 'm'
+                      : getTranslatedForCurrentUser(this.context, 'xxongoingxx')),
+              style: TextStyle(fontSize: 12),
+            ),
+          ],
+        ),
+        SizedBox(height: 4),
+        Text(
+          "${getTranslatedForCurrentUser(this.context, 'xxbyxx')} ${registry.getUserData(this.context, overrideSender ?? callData['INITIATED_BY'] ?? callData['initiatedBy'] ?? "").fullname}",
+          style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+        )
+      ],
+    );
   }
 
 
@@ -1464,24 +1588,65 @@ class _GroupChatPageState extends State<GroupChatPage>
 
   Widget buildMessagesUsingProvider(BuildContext context) {
     return Consumer<FirestoreDataProviderMESSAGESforGROUPCHAT>(
-        builder: (context, firestoreDataProvider, _) =>
-            InfiniteCOLLECTIONListViewWidget(
-              scrollController: realtime,
-              isreverse: true,
-              firestoreDataProviderMESSAGESforGROUPCHAT: firestoreDataProvider,
-              datatype: Dbkeys.datatypeGROUPCHATMSGS,
-              refdata: firestoreChatquery,
-              list: ListView.builder(
-                  reverse: true,
-                  padding: EdgeInsets.all(7),
-                  physics: ScrollPhysics(),
-                  shrinkWrap: true,
-                  itemCount: firestoreDataProvider.recievedDocs.length,
-                  itemBuilder: (BuildContext context, int i) {
-                    var dc = firestoreDataProvider.recievedDocs[i];
+        builder: (context, firestoreDataProvider, _) => StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection(DbPaths.collectiongroupcalls)
+                  .where('groupId', isEqualTo: widget.groupID)
+                  .snapshots(),
+              builder: (context, groupCallsSnapshot) {
+                List<Map<String, dynamic>> combinedList = [];
 
-                    return buildEachMessage(dc);
-                  }),
+                // Add messages from provider
+                combinedList.addAll(firestoreDataProvider.recievedDocs
+                    .map((d) => Map<String, dynamic>.from(d))
+                    .toList());
+
+                // Add group calls
+                if (groupCallsSnapshot.hasData) {
+                  for (var doc in groupCallsSnapshot.data!.docs) {
+                    var data = doc.data() as Map<String, dynamic>;
+                    // Convert to message format
+                    data[Dbkeys.groupmsgTYPE] = MessageType.rROBOTcallHistory.index;
+                    data[Dbkeys.groupmsgTIME] = data['createdAt'] ?? doc.id;
+                    data[Dbkeys.groupmsgSENDBY] = data['initiatedBy'] ?? "System";
+                    data[Dbkeys.content] = "${doc.id}--${data['initiatedBy']}";
+                    
+                    // Only add if not already in list (though normally they aren't)
+                    if (!combinedList.any((m) => m[Dbkeys.content].toString().startsWith(doc.id))) {
+                      combinedList.add(data);
+                    }
+                  }
+                }
+
+                // Sort by time
+                combinedList.sort((a, b) {
+                  var timeA = a[Dbkeys.groupmsgTIME];
+                  var timeB = b[Dbkeys.groupmsgTIME];
+                  
+                  int epochA = timeA is int ? timeA : (timeA is Timestamp ? timeA.millisecondsSinceEpoch : 0);
+                  int epochB = timeB is int ? timeB : (timeB is Timestamp ? timeB.millisecondsSinceEpoch : 0);
+                  
+                  return epochB.compareTo(epochA);
+                });
+
+                return InfiniteCOLLECTIONListViewWidget(
+                  scrollController: realtime,
+                  isreverse: true,
+                  firestoreDataProviderMESSAGESforGROUPCHAT: firestoreDataProvider,
+                  datatype: Dbkeys.datatypeGROUPCHATMSGS,
+                  refdata: firestoreChatquery,
+                  list: ListView.builder(
+                      reverse: true,
+                      padding: EdgeInsets.all(7),
+                      physics: ScrollPhysics(),
+                      shrinkWrap: true,
+                      itemCount: combinedList.length,
+                      itemBuilder: (BuildContext context, int i) {
+                        var dc = combinedList[i];
+                        return buildEachMessage(dc);
+                      }),
+                );
+              },
             ));
   }
 

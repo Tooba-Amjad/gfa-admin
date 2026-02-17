@@ -38,6 +38,7 @@ class DbPaths {
   static final String collectionnstatus = 'status';
   static final String collectionAgentGroups = 'agentgroups';
   static final String collectiontickets = 'tickets';
+  static final String collectiongroupcalls = 'group_calls';
 
   static final String collectiongroupChats = 'groupChats';
   static final String collectionticketChats = 'ticketChats';

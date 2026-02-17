@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:provider/provider.dart';
+import 'package:thinkcreative_technologies/Services/my_providers/user_registry_provider.dart';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -52,9 +54,10 @@ Widget chatBubble({
           isLHS ? MainAxisAlignment.start : MainAxisAlignment.end,
       children: [
         !isLHS
-            ? chatMssgDoc[Dbkeys.hasSenderDeleted] == true ||
-                    chatMssgDoc[Dbkeys.deletedType] != "" ||
-                    chatMssgDoc[Dbkeys.deletedType] != ""
+            ? (chatMssgDoc[Dbkeys.messageType] != MessageType.rROBOTcallHistory.index &&
+                (chatMssgDoc[Dbkeys.hasSenderDeleted] == true ||
+                    (chatMssgDoc[Dbkeys.deletedType] != null &&
+                        chatMssgDoc[Dbkeys.deletedType] != "")))
                 ? Container(
                     width: MediaQuery.of(context).size.width / 2.5,
                     padding: const EdgeInsets.only(top: 10, right: 10),
@@ -154,14 +157,14 @@ Widget chatBubble({
                       showShadow: false,
                       radius: 5,
                       bgColor: isLHS
-                          ? chatMssgDoc[Dbkeys.hasSenderDeleted] == true ||
-                                  chatMssgDoc[Dbkeys.deletedType] != "" ||
-                                  chatMssgDoc[Dbkeys.deletedType] != ""
+                          ? (chatMssgDoc[Dbkeys.hasSenderDeleted] == true ||
+                                  (chatMssgDoc[Dbkeys.deletedType] != null &&
+                                      chatMssgDoc[Dbkeys.deletedType] != ""))
                               ? Color(0xffffbfbf)
                               : Colors.white
-                          : chatMssgDoc[Dbkeys.hasSenderDeleted] == true ||
-                                  chatMssgDoc[Dbkeys.deletedType] != "" ||
-                                  chatMssgDoc[Dbkeys.deletedType] != ""
+                          : (chatMssgDoc[Dbkeys.hasSenderDeleted] == true ||
+                                  (chatMssgDoc[Dbkeys.deletedType] != null &&
+                                      chatMssgDoc[Dbkeys.deletedType] != ""))
                               ? Color(0xffffbfbf)
                               : Mycolors.chatBubbleColor),
                   child: Container(
@@ -343,9 +346,10 @@ Widget chatBubble({
                 child: customCircleAvatar(url: rhsUserPhoto, radius: 19))
             : SizedBox(),
         isLHS
-            ? chatMssgDoc[Dbkeys.hasSenderDeleted] == true ||
-                    chatMssgDoc[Dbkeys.deletedType] != "" ||
-                    chatMssgDoc[Dbkeys.deletedType] != ""
+            ? (chatMssgDoc[Dbkeys.messageType] != MessageType.rROBOTcallHistory.index &&
+                (chatMssgDoc[Dbkeys.hasSenderDeleted] == true ||
+                    (chatMssgDoc[Dbkeys.deletedType] != null &&
+                        chatMssgDoc[Dbkeys.deletedType] != "")))
                 ? Container(
                     width: MediaQuery.of(context).size.width / 2.5,
                     padding: const EdgeInsets.only(top: 10, right: 10),
@@ -1270,11 +1274,130 @@ Widget buildMssgByType(
                       ? getVideoMessage(
                           isRHS, context, doc, doc[Dbkeys.content],
                           saved: false)
-                      : doc[Dbkeys.messageType] == MessageType.contact.index
-                          ? SizedBox()
-                          : getImageMessage(
-                              isRHS,
-                              doc,
-                              saved: false,
-                            );
+      : doc[Dbkeys.messageType] == MessageType.rROBOTcallHistory.index
+          ? getCallHistoryMessage(context, doc)
+          : doc[Dbkeys.messageType] == MessageType.contact.index
+              ? SizedBox()
+              : getImageMessage(
+                  isRHS,
+                  doc,
+                  saved: false,
+                );
 }
+
+Widget getCallHistoryMessage(BuildContext context, Map<String, dynamic> doc) {
+  var registry = Provider.of<UserRegistry>(context, listen: false);
+
+  // If the record details are already in the doc, display them immediately
+  if (doc.containsKey('ISVIDEOCALL')) {
+    return _buildCallHistoryUI(context, doc, registry);
+  }
+
+  String initiatorID = doc[Dbkeys.content].toString().split('--').length > 1
+      ? doc[Dbkeys.content].toString().split('--')[1]
+      : doc[Dbkeys.from];
+
+  return Center(
+    child: Container(
+      margin: EdgeInsets.symmetric(vertical: 10),
+      padding: EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.blue[50],
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: FutureBuilder<DocumentSnapshot>(
+        future: FirebaseFirestore.instance
+            .collection(DbPaths.collectionagents)
+            .doc(initiatorID)
+            .collection(DbPaths.collectioncallhistory)
+            .doc(doc[Dbkeys.timestamp].toString())
+            .get(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Text(getTranslatedForCurrentUser(context, 'xxloadingxx'),
+                style: TextStyle(fontSize: 12, color: Colors.grey));
+          }
+          if (!snapshot.hasData || !snapshot.data!.exists) {
+            return Text(
+                getTranslatedForCurrentUser(context, 'xxcallbyxxtoxx')
+                    .replaceAll('(###)',
+                        "${registry.getUserData(context, doc[Dbkeys.from]).fullname}")
+                    .replaceAll('(####)',
+                        "${registry.getUserData(context, doc[Dbkeys.to]).fullname}"),
+                style: TextStyle(fontSize: 12, color: Colors.blueGrey));
+          }
+          var callData = snapshot.data!.data() as Map<String, dynamic>;
+          return _buildCallHistoryUI(context, callData, registry);
+        },
+      ),
+    ),
+  );
+}
+
+Widget _buildCallHistoryUI(BuildContext context, Map<String, dynamic> callData,
+    UserRegistry registry) {
+  bool isVideo = callData['ISVIDEOCALL'] ?? false;
+  var started = callData['STARTED'];
+  var ended = callData['ENDED'];
+  DateTime? startTime = started is int
+      ? DateTime.fromMillisecondsSinceEpoch(started)
+      : (started is Timestamp ? started.toDate() : null);
+  DateTime? endTime = ended is int
+      ? DateTime.fromMillisecondsSinceEpoch(ended)
+      : (ended is Timestamp ? ended.toDate() : null);
+
+  return Container(
+    padding: EdgeInsets.all(2),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isVideo ? Icons.videocam : Icons.call,
+              size: 16,
+              color: Colors.blue,
+            ),
+            SizedBox(width: 8),
+            Text(
+              isVideo
+                  ? getTranslatedForCurrentUser(context, 'xxvideocallxx')
+                  : getTranslatedForCurrentUser(context, 'xxaudiocallxx'),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+            ),
+          ],
+        ),
+        SizedBox(height: 5),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              callData['TYPE'] == 'INCOMING'
+                  ? (startTime == null ? Icons.call_missed : Icons.call_received)
+                  : Icons.call_made,
+              size: 14,
+              color: callData['TYPE'] == 'INCOMING' && startTime == null
+                  ? Colors.red
+                  : Colors.green,
+            ),
+            SizedBox(width: 5),
+            Text(
+              startTime == null
+                  ? (callData['TYPE'] == 'INCOMING'
+                      ? getTranslatedForCurrentUser(context, 'xxmissedcallxx')
+                      : getTranslatedForCurrentUser(context, 'xxunansweredxx'))
+                  : (endTime != null
+                      ? endTime.difference(startTime).inMinutes < 1
+                          ? endTime.difference(startTime).inSeconds.toString() + 's'
+                          : endTime.difference(startTime).inMinutes.toString() + 'm'
+                      : getTranslatedForCurrentUser(context, 'xxongoingxx')),
+              style: TextStyle(fontSize: 12),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+

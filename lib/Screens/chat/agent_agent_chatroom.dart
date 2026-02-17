@@ -280,43 +280,109 @@ class _AgentToAgentChatRoomState extends State<AgentToAgentChatRoom> {
                     return Center(child: circularProgress());
                   }
 
-                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                    return noDataWidget(
-                      iconData: Icons.message_outlined,
-                      context: context,
-                      padding: EdgeInsets.fromLTRB(28,
-                          MediaQuery.of(context).size.height / 3.7, 28, 10),
-                      title: getTranslatedForCurrentUser(
-                          context, 'xxnorecentchatsxx'),
-                    );
-                  }
+                  return StreamBuilder<QuerySnapshot>(
+                    stream: FirebaseFirestore.instance
+                        .collection(DbPaths.collectionagents)
+                        .doc(widget.lhsUserID)
+                        .collection(DbPaths.collectioncallhistory)
+                        .where('PEER', isEqualTo: widget.rhsUserID)
+                        .snapshots(),
+                    builder: (context, lhsCallsSnapshot) {
+                      return StreamBuilder<QuerySnapshot>(
+                        stream: FirebaseFirestore.instance
+                            .collection(DbPaths.collectionagents)
+                            .doc(widget.rhsUserID)
+                            .collection(DbPaths.collectioncallhistory)
+                            .where('PEER', isEqualTo: widget.lhsUserID)
+                            .snapshots(),
+                        builder: (context, rhsCallsSnapshot) {
+                          List<Map<String, dynamic>> combinedList = [];
 
-                  List<QueryDocumentSnapshot> messages = snapshot.data!.docs.cast<QueryDocumentSnapshot>();
+                          // Add messages
+                          if (snapshot.hasData) {
+                            combinedList.addAll(snapshot.data!.docs
+                                .map((d) => d.data() as Map<String, dynamic>)
+                                .toList());
+                          }
 
-                  return ListView.builder(
-                    reverse: true,
-                    padding: EdgeInsets.only(bottom: 20, top: 20),
-                    itemCount: messages.length + 1,
-                    itemBuilder: (BuildContext context, int i) {
-                      // Show warning tile at the end (top of list when reversed)
-                      if (i == messages.length) {
-                        return warningTile(
-                          title: observer.userAppSettingsDoc!
-                                      .defaultMessageDeletingTimeForOneToOneChat ==
-                                  0
-                              ? getTranslatedForCurrentUser(
-                                  this.context, 'xxmssgautodeletenotxxx')
-                              : getTranslatedForCurrentUser(
-                                      this.context, 'xxxmssgautodeletexxx')
-                                  .replaceAll('(####)',
-                                      '<bold>${observer.userAppSettingsDoc!.defaultMessageDeletingTimeForOneToOneChat}</bold>'),
-                          warningTypeIndex: WarningType.alert.index,
-                          isstyledtext: true,
-                        );
-                      }
+                          // Add LHS calls
+                          if (lhsCallsSnapshot.hasData) {
+                            for (var doc in lhsCallsSnapshot.data!.docs) {
+                              var data = doc.data() as Map<String, dynamic>;
+                              data[Dbkeys.messageType] = MessageType.rROBOTcallHistory.index;
+                              data[Dbkeys.timestamp] = data['TIME'] ?? doc.id;
+                              data[Dbkeys.from] = widget.lhsUserID;
+                              data[Dbkeys.to] = widget.rhsUserID;
+                              data[Dbkeys.hasSenderDeleted] = false;
+                              data[Dbkeys.deletedType] = "";
+                              data[Dbkeys.content] = "${data['CALL_ID'] ?? doc.id}--${widget.lhsUserID}";
+                              combinedList.add(data);
+                            }
+                          }
 
-                      var mssgSnapshot = messages[i];
-                      var mssg = mssgSnapshot.data() as Map<String, dynamic>;
+                          // Add RHS calls
+                          if (rhsCallsSnapshot.hasData) {
+                            for (var doc in rhsCallsSnapshot.data!.docs) {
+                              var data = doc.data() as Map<String, dynamic>;
+                              data[Dbkeys.messageType] = MessageType.rROBOTcallHistory.index;
+                              data[Dbkeys.timestamp] = data['TIME'] ?? doc.id;
+                              data[Dbkeys.from] = widget.rhsUserID;
+                              data[Dbkeys.to] = widget.lhsUserID;
+                              data[Dbkeys.hasSenderDeleted] = false;
+                              data[Dbkeys.deletedType] = "";
+                              data[Dbkeys.content] = "${data['CALL_ID'] ?? doc.id}--${widget.rhsUserID}";
+                              combinedList.add(data);
+                            }
+                          }
+
+                          // Sort combined list by timestamp
+                          combinedList.sort((a, b) {
+                            var timeA = a[Dbkeys.timestamp];
+                            var timeB = b[Dbkeys.timestamp];
+                            int epochA = timeA is int
+                                ? timeA
+                                : (timeA is Timestamp ? timeA.millisecondsSinceEpoch : 0);
+                            int epochB = timeB is int
+                                ? timeB
+                                : (timeB is Timestamp ? timeB.millisecondsSinceEpoch : 0);
+                            return epochB.compareTo(epochA);
+                          });
+
+                          if (combinedList.isEmpty) {
+                            return noDataWidget(
+                              iconData: Icons.message_outlined,
+                              context: context,
+                              padding: EdgeInsets.fromLTRB(28,
+                                  MediaQuery.of(context).size.height / 3.7, 28, 10),
+                              title: getTranslatedForCurrentUser(
+                                  context, 'xxnorecentchatsxx'),
+                            );
+                          }
+
+                          var observer = Provider.of<Observer>(context, listen: false);
+
+                          return ListView.builder(
+                            reverse: true,
+                            padding: EdgeInsets.only(bottom: 20, top: 20),
+                            itemCount: combinedList.length + 1,
+                            itemBuilder: (BuildContext context, int i) {
+                              if (i == combinedList.length) {
+                                return warningTile(
+                                  title: observer.userAppSettingsDoc!
+                                              .defaultMessageDeletingTimeForOneToOneChat ==
+                                          0
+                                      ? getTranslatedForCurrentUser(
+                                          this.context, 'xxmssgautodeletenotxxx')
+                                      : getTranslatedForCurrentUser(
+                                              this.context, 'xxxmssgautodeletexxx')
+                                          .replaceAll('(####)',
+                                              '<bold>${observer.userAppSettingsDoc!.defaultMessageDeletingTimeForOneToOneChat}</bold>'),
+                                  warningTypeIndex: WarningType.alert.index,
+                                  isstyledtext: true,
+                                );
+                              }
+
+                              var mssg = combinedList[i];
                       bool isLHS = mssg[Dbkeys.from] == widget.lhsUserID;
 
                       return InkWell(
@@ -366,18 +432,22 @@ class _AgentToAgentChatRoomState extends State<AgentToAgentChatRoom> {
                             },
                           );
                         },
-                        child: chatBubble(
-                          context: this.context,
-                          lhsUserID: widget.lhsUserID,
-                          rhsUserID: widget.rhsUserID,
-                          lhsUserPhoto: widget.lhsUserPhoto,
-                          rhsUserPhoto: widget.rhsUserPhoto,
-                          lhsUsername: widget.lhsUserName,
-                          rhsUsername: widget.rhsUserName,
-                          isLHS: isLHS,
-                          chatMssgDoc: mssg,
-                          chatRoomDoc: chatRoomSnapshot.data,
-                        ),
+                                child: chatBubble(
+                                  context: this.context,
+                                  lhsUserID: widget.lhsUserID,
+                                  rhsUserID: widget.rhsUserID,
+                                  lhsUserPhoto: widget.lhsUserPhoto,
+                                  rhsUserPhoto: widget.rhsUserPhoto,
+                                  lhsUsername: widget.lhsUserName,
+                                  rhsUsername: widget.rhsUserName,
+                                  isLHS: isLHS,
+                                  chatMssgDoc: mssg,
+                                  chatRoomDoc: chatRoomSnapshot.data,
+                                ),
+                              );
+                            },
+                          );
+                        },
                       );
                     },
                   );
