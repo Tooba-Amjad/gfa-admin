@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
@@ -95,155 +96,144 @@ class _AllAgentsState extends State<AllAgents> {
                     this.context, 'xxxnotalwddemoxxaccountxx'));
               }
             : () async {
-                int tapproved = 0;
-                int tblocked = 0;
-                int tpending = 0;
-                Navigator.pop(this.context);
-                ShowLoading().open(context: this.context, key: _keyLoader);
-                await colRef.doc(userid).update({
-                  Dbkeys.actionmessage: accountSTATUS == Dbkeys.sTATUSallowed
-                      ? _controller.text.trim().length < 1
-                          ? getTranslatedForCurrentUser(
-                              this.context, 'xxxaccountblockedxxx')
-                          : '${getTranslatedForCurrentUser(this.context, 'xxxaccountblockedforxxx')} ${_controller.text.trim()}.'
-                      : accountSTATUS == Dbkeys.sTATUSpending
-                          ? getTranslatedForCurrentUser(
-                              this.context, 'xxxcongratatulationacapprovedxxx')
+                    Navigator.pop(this.context);
+                    colRef.doc(userid).update({
+                      Dbkeys.actionmessage: accountSTATUS == Dbkeys.sTATUSallowed
+                          ? _controller.text.trim().length < 1
+                              ? getTranslatedForCurrentUser(
+                                  this.context, 'xxxaccountblockedxxx')
+                              : '${getTranslatedForCurrentUser(this.context, 'xxxaccountblockedforxxx')} ${_controller.text.trim()}.'
+                          : accountSTATUS == Dbkeys.sTATUSpending
+                              ? getTranslatedForCurrentUser(
+                                  this.context, 'xxxcongratatulationacapprovedxxx')
+                              : accountSTATUS == Dbkeys.sTATUSblocked
+                                  ? getTranslatedForCurrentUser(this.context,
+                                      'xxxcongratatulationacapprovedxxx')
+                                  : getTranslatedForCurrentUser(
+                                      this.context, 'xxxacstatuschangedxxx'),
+                      Dbkeys.accountstatus: accountSTATUS == Dbkeys.sTATUSallowed
+                          ? Dbkeys.sTATUSblocked
                           : accountSTATUS == Dbkeys.sTATUSblocked
-                              ? getTranslatedForCurrentUser(this.context,
-                                  'xxxcongratatulationacapprovedxxx')
-                              : getTranslatedForCurrentUser(
-                                  this.context, 'xxxacstatuschangedxxx'),
-                  Dbkeys.accountstatus: accountSTATUS == Dbkeys.sTATUSallowed
-                      ? Dbkeys.sTATUSblocked
-                      : accountSTATUS == Dbkeys.sTATUSblocked
-                          ? Dbkeys.sTATUSallowed
-                          : Dbkeys.sTATUSallowed
-                  // Dbkeys.cpnfilter: '$currency${!usrisvisble}',
-                }).then((val) {
-                  // ShowLoading().close(context: this.context, key: _keyLoader);
-                }).then((val) async {
-                  await FirebaseFirestore.instance
-                      .collection(DbPaths.collectionagents)
-                      .get()
-                      .then((value) {
-                    tapproved = value.docs
-                        .where((element) =>
-                            element[Dbkeys.accountstatus] ==
-                            Dbkeys.sTATUSallowed)
-                        .length;
-                    tblocked = value.docs
-                        .where((element) =>
-                            element[Dbkeys.accountstatus] ==
-                            Dbkeys.sTATUSblocked)
-                        .length;
-                    tpending = value.docs
-                        .where((element) =>
-                            element[Dbkeys.accountstatus] ==
-                            Dbkeys.sTATUSpending)
-                        .length;
-                  }).then((value) async {
-                    FirebaseFirestore.instance
-                        .collection(DbPaths.userapp)
-                        .doc(DbPaths.docusercount)
-                        .update({
-                      Dbkeys.totalapprovedagents: tapproved,
-                      Dbkeys.totalblockedagents: tblocked,
-                      Dbkeys.totalpendingagents: tpending,
-                    });
-                    //-- CREATED HISTORY
-                    if (AppConstants.isrecordhistory == true) {
-                      await FirebaseApi.runTransactionRecordActivity(
-                        parentid: "AGENT--$userid",
-                        onErrorFn: (e) {
-                          ShowLoading()
-                              .close(context: this.context, key: _keyLoader);
-                          _controller.clear();
+                              ? Dbkeys.sTATUSallowed
+                              : Dbkeys.sTATUSallowed
+                    }).then((value) async {
+                      // 1. Show Success
+                      ShowSnackbar().open(
+                          context: this.context,
+                          scaffoldKey: _scaffoldKey,
+                          status: 2,
+                          time: 3,
+                          label: accountSTATUS == Dbkeys.sTATUSallowed
+                              ? '${getTranslatedForCurrentUser(this.context, 'xxxsuccessxxx')}  ${fullname!.toUpperCase()} - ${getTranslatedForCurrentUser(this.context, 'xxxblockedxxx')}. ${getTranslatedForCurrentUser(this.context, 'xxxusernotifiedxxx')} '
+                              : accountSTATUS == Dbkeys.sTATUSblocked
+                                  ? '${getTranslatedForCurrentUser(this.context, 'xxxsuccessxxx')}  ${fullname!.toUpperCase()} - ${getTranslatedForCurrentUser(this.context, 'xxxapprovedxxx')}. ${getTranslatedForCurrentUser(this.context, 'xxxusernotifiedxxx')} '
+                                  : '${getTranslatedForCurrentUser(this.context, 'xxxsuccessxxx')} . ${getTranslatedForCurrentUser(this.context, 'xxxusernotifiedxxx')} ');
 
-                          ShowSnackbar().open(
-                              context: this.context,
-                              scaffoldKey: _scaffoldKey,
-                              status: 1,
-                              time: 3,
-                              label:
-                                  '${getTranslatedForCurrentUser(this.context, 'xxxfailedntryagainxxx')} $e');
-                        },
-                        onSuccessFn: () async {
-                          await Utils.sendDirectNotification(
+                      // 3. Perform secondary tasks in background
+                      unawaited(colRef.get().then((value) {
+                        int tapproved = value.docs
+                            .where((element) =>
+                                element[Dbkeys.accountstatus] ==
+                                Dbkeys.sTATUSallowed)
+                            .length;
+                        int tblocked = value.docs
+                            .where((element) =>
+                                element[Dbkeys.accountstatus] ==
+                                Dbkeys.sTATUSblocked)
+                            .length;
+                        int tpending = value.docs
+                            .where((element) =>
+                                element[Dbkeys.accountstatus] ==
+                                Dbkeys.sTATUSpending)
+                            .length;
+                        FirebaseFirestore.instance
+                            .collection(DbPaths.userapp)
+                            .doc(DbPaths.docusercount)
+                            .update({
+                          Dbkeys.totalapprovedagents: tapproved,
+                          Dbkeys.totalblockedagents: tblocked,
+                          Dbkeys.totalpendingagents: tpending,
+                        });
+                      }));
+
+                      unawaited(Future(() async {
+                        //-- CREATED HISTORY
+                        if (AppConstants.isrecordhistory == true) {
+                          await FirebaseApi.runTransactionRecordActivity(
+                            parentid: "AGENT--$userid",
+                            onErrorFn: (e) {},
+                            onSuccessFn: () async {
+                              await Utils.sendDirectNotification(
+                                postedbyID: widget.currentuserid,
+                                docRef: this
+                                    .colRef
+                                    .doc(userid)
+                                    .collection(DbPaths.agentnotifications)
+                                    .doc(DbPaths.agentnotifications),
+                                parentID: "AGENT--$userid",
+                                title: accountSTATUS == Dbkeys.sTATUSallowed
+                                    ? '${getTranslatedForCurrentUser(this.context, 'xxaccountxx')} ${getTranslatedForCurrentUser(this.context, 'xxxblockedxxx')}'
+                                    : accountSTATUS == Dbkeys.sTATUSpending
+                                        ? '${getTranslatedForCurrentUser(this.context, 'xxaccountxx')} ${getTranslatedForCurrentUser(this.context, 'xxxapprovedxxx')}'
+                                        : accountSTATUS == Dbkeys.sTATUSblocked
+                                            ? '${getTranslatedForCurrentUser(this.context, 'xxaccountxx')} ${getTranslatedForCurrentUser(this.context, 'xxxapprovedxxx')}'
+                                            : getTranslatedForEventsAndAlerts(
+                                                this.context,
+                                                'xxxacstatuschangexxx'),
+                                plaindesc: accountSTATUS == Dbkeys.sTATUSallowed
+                                    ? _controller.text.trim().length < 1
+                                        ? getTranslatedForCurrentUser(
+                                            this.context, 'xxxaccountblockedxxx')
+                                        : '${getTranslatedForCurrentUser(this.context, 'xxxaccountblockedforxxx')} ${_controller.text.trim()}.'
+                                    : accountSTATUS == Dbkeys.sTATUSpending
+                                        ? getTranslatedForCurrentUser(this.context,
+                                            'xxxcongratatulationacapprovedxxx')
+                                        : accountSTATUS == Dbkeys.sTATUSblocked
+                                            ? getTranslatedForCurrentUser(
+                                                this.context,
+                                                'xxxcongratatulationacapprovedxxx')
+                                            : getTranslatedForCurrentUser(
+                                                this.context,
+                                                'xxxacstatuschangedxxx'),
+                              );
+
+                              await firestore.updateparticulardocinProvider(
+                                  colRef: colRef,
+                                  userid: userid!,
+                                  onfetchDone: (userDoc) async {});
+                            },
                             postedbyID: widget.currentuserid,
-                            docRef: this
-                                .colRef
-                                .doc(userid)
-                                .collection(DbPaths.agentnotifications)
-                                .doc(DbPaths.agentnotifications),
-                            parentID: "AGENT--$userid",
+                            context: this.context,
                             title: accountSTATUS == Dbkeys.sTATUSallowed
                                 ? '${getTranslatedForCurrentUser(this.context, 'xxaccountxx')} ${getTranslatedForCurrentUser(this.context, 'xxxblockedxxx')}'
                                 : accountSTATUS == Dbkeys.sTATUSpending
                                     ? '${getTranslatedForCurrentUser(this.context, 'xxaccountxx')} ${getTranslatedForCurrentUser(this.context, 'xxxapprovedxxx')}'
                                     : accountSTATUS == Dbkeys.sTATUSblocked
                                         ? '${getTranslatedForCurrentUser(this.context, 'xxaccountxx')} ${getTranslatedForCurrentUser(this.context, 'xxxapprovedxxx')}'
-                                        : getTranslatedForEventsAndAlerts(
-                                            this.context,
-                                            'xxxacstatuschangexxx'),
-                            plaindesc: accountSTATUS == Dbkeys.sTATUSallowed
-                                ? _controller.text.trim().length < 1
-                                    ? getTranslatedForCurrentUser(
-                                        this.context, 'xxxaccountblockedxxx')
-                                    : '${getTranslatedForCurrentUser(this.context, 'xxxaccountblockedforxxx')} ${_controller.text.trim()}.'
-                                : accountSTATUS == Dbkeys.sTATUSpending
-                                    ? getTranslatedForCurrentUser(this.context,
-                                        'xxxcongratatulationacapprovedxxx')
-                                    : accountSTATUS == Dbkeys.sTATUSblocked
-                                        ? getTranslatedForCurrentUser(
-                                            this.context,
-                                            'xxxcongratatulationacapprovedxxx')
                                         : getTranslatedForCurrentUser(
-                                            this.context,
-                                            'xxxacstatuschangedxxx'),
+                                            this.context, 'xxxacstatuschangexxx'),
+                            plainDesc: accountSTATUS == Dbkeys.sTATUSallowed
+                                ? '$fullname (${getTranslatedForCurrentUser(this.context, 'xxagentxx')})${getTranslatedForCurrentUser(this.context, 'xxxtheaccountblockedforxxx')} ${_controller.text.trim()}. ${getTranslatedForCurrentUser(this.context, 'xxxbyxxx')} ${widget.currentuserid}  '
+                                : accountSTATUS == Dbkeys.sTATUSpending
+                                    ? '$fullname (${getTranslatedForCurrentUser(this.context, 'xxagentxx')}) ${getTranslatedForCurrentUser(this.context, 'xxaccountxx')} ${getTranslatedForCurrentUser(this.context, 'xxxapprovedxxx')}. ${getTranslatedForCurrentUser(this.context, 'xxxbyxxx')} ${widget.currentuserid}   '
+                                    : accountSTATUS == Dbkeys.sTATUSblocked
+                                        ? '$fullname (${getTranslatedForCurrentUser(this.context, 'xxagentxx')}) ${getTranslatedForCurrentUser(this.context, 'xxxaccountxx')} ${getTranslatedForCurrentUser(this.context, 'xxxapprovedxxx')}. ${getTranslatedForCurrentUser(this.context, 'xxxbyxxx')} ${widget.currentuserid}  '
+                                        : '$fullname (${getTranslatedForCurrentUser(this.context, 'xxagentxx')}) ${getTranslatedForCurrentUser(this.context, 'xxxacstatuschangexxx')}. ${getTranslatedForCurrentUser(this.context, 'xxxbyxxx')} ${widget.currentuserid}  ',
                           );
+                        }
+                      }));
 
-                          await firestore.updateparticulardocinProvider(
-                              colRef: colRef,
-                              userid: userid!,
-                              onfetchDone: (userDoc) async {});
-
-                          ShowLoading()
-                              .close(context: this.context, key: _keyLoader);
-                          _controller.clear();
-                          ShowSnackbar().open(
-                              context: this.context,
-                              scaffoldKey: _scaffoldKey,
-                              status: 2,
-                              time: 3,
-                              label: accountSTATUS == Dbkeys.sTATUSallowed
-                                  ? '${getTranslatedForCurrentUser(this.context, 'xxxsuccessxxx')}  ${fullname!.toUpperCase()} - ${getTranslatedForCurrentUser(this.context, 'xxxblockedxxx')}. ${getTranslatedForCurrentUser(this.context, 'xxxusernotifiedxxx')} '
-                                  : accountSTATUS == Dbkeys.sTATUSblocked
-                                      ? '${getTranslatedForCurrentUser(this.context, 'xxxsuccessxxx')}  ${fullname!.toUpperCase()} - ${getTranslatedForCurrentUser(this.context, 'xxxapprovedxxx')}. ${getTranslatedForCurrentUser(this.context, 'xxxusernotifiedxxx')} '
-                                      : '${getTranslatedForCurrentUser(this.context, 'xxxsuccessxxx')} . ${getTranslatedForCurrentUser(this.context, 'xxxusernotifiedxxx')} ');
-                        },
-                        postedbyID: widget.currentuserid,
-                        context: this.context,
-                        title: accountSTATUS == Dbkeys.sTATUSallowed
-                            ? '${getTranslatedForCurrentUser(this.context, 'xxaccountxx')} ${getTranslatedForCurrentUser(this.context, 'xxxblockedxxx')}'
-                            : accountSTATUS == Dbkeys.sTATUSpending
-                                ? '${getTranslatedForCurrentUser(this.context, 'xxaccountxx')} ${getTranslatedForCurrentUser(this.context, 'xxxapprovedxxx')}'
-                                : accountSTATUS == Dbkeys.sTATUSblocked
-                                    ? '${getTranslatedForCurrentUser(this.context, 'xxaccountxx')} ${getTranslatedForCurrentUser(this.context, 'xxxapprovedxxx')}'
-                                    : getTranslatedForCurrentUser(
-                                        this.context, 'xxxacstatuschangexxx'),
-                        plainDesc: accountSTATUS == Dbkeys.sTATUSallowed
-                            ? '$fullname (${getTranslatedForCurrentUser(this.context, 'xxagentxx')})${getTranslatedForCurrentUser(this.context, 'xxxtheaccountblockedforxxx')} ${_controller.text.trim()}. ${getTranslatedForCurrentUser(this.context, 'xxxbyxxx')} ${widget.currentuserid}  '
-                            : accountSTATUS == Dbkeys.sTATUSpending
-                                ? '$fullname (${getTranslatedForCurrentUser(this.context, 'xxagentxx')}) ${getTranslatedForCurrentUser(this.context, 'xxaccountxx')} ${getTranslatedForCurrentUser(this.context, 'xxxapprovedxxx')}. ${getTranslatedForCurrentUser(this.context, 'xxxbyxxx')} ${widget.currentuserid}   '
-                                : accountSTATUS == Dbkeys.sTATUSblocked
-                                    ? '$fullname (${getTranslatedForCurrentUser(this.context, 'xxagentxx')}) ${getTranslatedForCurrentUser(this.context, 'xxaccountxx')} ${getTranslatedForCurrentUser(this.context, 'xxxapprovedxxx')}. ${getTranslatedForCurrentUser(this.context, 'xxxbyxxx')} ${widget.currentuserid}  '
-                                    : '$fullname (${getTranslatedForCurrentUser(this.context, 'xxagentxx')}) ${getTranslatedForCurrentUser(this.context, 'xxxacstatuschangexxx')}. ${getTranslatedForCurrentUser(this.context, 'xxxbyxxx')} ${widget.currentuserid}  ',
-                      );
-                    }
+                      _controller.clear();
+                    }).catchError((e) {
+                      _controller.clear();
+                      ShowSnackbar().open(
+                          context: this.context,
+                          scaffoldKey: _scaffoldKey,
+                          status: 1,
+                          time: 3,
+                          label: getTranslatedForCurrentUser(this.context, 'xxxfailedntryagainxxx') + e.toString());
+                    });
                   });
-                });
-              });
   }
 
   final GlobalKey<State> _keyLoader = new GlobalKey<State>(debugLabel: '0000');

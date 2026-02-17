@@ -41,6 +41,15 @@ class AgentCard extends StatefulWidget {
 }
 
 class _AgentCardState extends State<AgentCard> {
+  bool? isToggled;
+  @override
+  void didUpdateWidget(covariant AgentCard oldWidget) {
+    if (widget.usermodel.accountstatus != oldWidget.usermodel.accountstatus) {
+      isToggled = widget.usermodel.accountstatus == Dbkeys.sTATUSallowed;
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
   @override
   Widget build(BuildContext context) {
     final observer = Provider.of<Observer>(this.context, listen: false);
@@ -410,6 +419,15 @@ class CustomerCard extends StatefulWidget {
 }
 
 class _CustomerCardState extends State<CustomerCard> {
+  bool? isToggled;
+  @override
+  void didUpdateWidget(covariant CustomerCard oldWidget) {
+    if (widget.usermodel.accountstatus != oldWidget.usermodel.accountstatus) {
+      isToggled = widget.usermodel.accountstatus == Dbkeys.sTATUSallowed;
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
   @override
   Widget build(BuildContext context) {
     final observer = Provider.of<Observer>(this.context, listen: false);
