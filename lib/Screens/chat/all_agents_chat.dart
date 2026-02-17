@@ -31,28 +31,32 @@ class AllAgentsChat extends StatefulWidget {
 }
 
 class _AllAgentsChatState extends State<AllAgentsChat> {
-  List<DocumentSnapshot> chats = [];
-  String error = "";
-  bool isloading = true;
+  late Stream<QuerySnapshot> _chatStream;
+
   @override
   void initState() {
     super.initState();
-    fetchData(widget.query ??
-        FirebaseFirestore.instance
+    _chatStream = widget.query != null
+        ? widget.query!.snapshots()
+        : FirebaseFirestore.instance
             .collection(DbPaths.collectionAgentIndividiualmessages)
-            .orderBy(Dbkeys.lastMessageTime, descending: true));
+            .orderBy(Dbkeys.lastMessageTime, descending: true)
+            .snapshots();
+    print('🔴 AllAgentsChat - Stream initialized in initState');
   }
 
-  fetchData(Query query) async {
-    await query.get().then((docs) {
-      chats = docs.docs.toList();
-      isloading = false;
-      setState(() {});
-    }).catchError((onError) {
-      error = onError.toString();
-      isloading = false;
-      setState(() {});
-    });
+  @override
+  void didUpdateWidget(AllAgentsChat oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.query != widget.query) {
+      _chatStream = widget.query != null
+          ? widget.query!.snapshots()
+          : FirebaseFirestore.instance
+              .collection(DbPaths.collectionAgentIndividiualmessages)
+              .orderBy(Dbkeys.lastMessageTime, descending: true)
+              .snapshots();
+      print('🔴 AllAgentsChat - Stream reinitialized in didUpdateWidget');
+    }
   }
 
   @override
@@ -61,336 +65,331 @@ class _AllAgentsChatState extends State<AllAgentsChat> {
       title: getTranslatedForCurrentUser(this.context, 'xxagentchatsxx'),
       subtitle: widget.subtitle,
       icondata1: Icons.refresh,
-      icon1press: () async {
-        setState(() {
-          isloading = true;
-        });
-        await fetchData(widget.query ??
-            FirebaseFirestore.instance
-                .collection(DbPaths.collectionAgentIndividiualmessages)
-                .orderBy(Dbkeys.lastMessageTime, descending: true));
+      icon1press: () {
+        setState(() {});
       },
-      body: error != ""
-          ? Center(
-              child: Padding(
-                padding: EdgeInsets.all(20),
-                child: Text(
-                  error,
-                  textAlign: TextAlign.center,
+      body: StreamBuilder<QuerySnapshot>(
+          stream: _chatStream,
+          builder: (context, snapshot) {
+            
+            if (snapshot.hasError) {
+              return Center(
+                child: Padding(
+                  padding: EdgeInsets.all(20),
+                  child: Text(
+                    snapshot.error.toString(),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
-              ),
-            )
-          : isloading
-              ? circularProgress()
-              : chats.length == 0
-                  ? noDataWidget(
-                      context: this.context,
-                      title: getTranslatedForCurrentUser(
-                          this.context, 'xxxnochatsxxx'),
-                      subtitle: getTranslatedForCurrentUser(
-                              this.context, 'xxxnoxxchatxxx')
-                          .replaceAll('(####)',
-                              '${getTranslatedForCurrentUser(this.context, 'xxagentsxx')}'),
-                      iconData: LineAwesomeIcons.alternate_ticket)
-                  : ListView.builder(
-                      itemCount: chats.length,
-                      itemBuilder: (BuildContext context, int i) {
-                        String user1 = chats[i]["chatmembers"][0];
-                        String user2 = chats[i]["chatmembers"][1];
-                        return futureLoad(
-                            future: FirebaseFirestore.instance
-                                .collection(DbPaths.collectionagents)
-                                .doc(user1)
-                                .get(),
-                            placeholder: SizedBox(),
-                            onfetchdone: (user1Map) {
-                              if (user1Map != null) {
-                                return futureLoad(
-                                    future: FirebaseFirestore.instance
-                                        .collection(DbPaths.collectionagents)
-                                        .doc(user2)
-                                        .get(),
-                                    placeholder: SizedBox(),
-                                    onfetchdone: (user2Map) {
-                                      if (user2Map != null) {
-                                        return myinkwell(
-                                          onTap: () {
-                                            final provider = Provider.of<
-                                                    FirestoreDataProviderCHATMESSAGES>(
-                                                this.context,
-                                                listen: false);
-                                            provider.reset();
-                                            provider.fetchNextData(
-                                                Dbkeys.dataTypeMESSAGES,
-                                                FirebaseFirestore.instance
-                                                    .collection(DbPaths
-                                                        .collectionAgentIndividiualmessages)
-                                                    .doc(chats[i].reference.id)
-                                                    .collection(
-                                                        chats[i].reference.id),
-                                                false);
-                                            pageNavigator(
-                                                this.context,
-                                                AgentToAgentChatRoom(
-                                                  onDelete: () async {
-                                                    await fetchData(widget
-                                                            .query ??
-                                                        FirebaseFirestore
-                                                            .instance
-                                                            .collection(DbPaths
-                                                                .collectionAgentIndividiualmessages)
-                                                            .orderBy(
+              );
+            }
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return circularProgress();
+            }
+
+            List<DocumentSnapshot> chats = snapshot.data!.docs;
+
+            if (chats.length == 0) {
+              return noDataWidget(
+                  context: this.context,
+                  title: getTranslatedForCurrentUser(
+                      this.context, 'xxxnochatsxxx'),
+                  subtitle: getTranslatedForCurrentUser(
+                          this.context, 'xxxnoxxchatxxx')
+                      .replaceAll('(####)',
+                          '${getTranslatedForCurrentUser(this.context, 'xxagentsxx')}'),
+                  iconData: LineAwesomeIcons.alternate_ticket);
+            }
+
+            return ListView.builder(
+                itemCount: chats.length,
+                itemBuilder: (BuildContext context, int i) {
+                  String user1 = chats[i]["chatmembers"][0];
+                  String user2 = chats[i]["chatmembers"][1];
+                  return streamLoad(
+                      stream: FirebaseFirestore.instance
+                          .collection(DbPaths.collectionagents)
+                          .doc(user1)
+                          .snapshots(),
+                      placeholder: SizedBox(),
+                      onfetchdone: (user1Map) {
+                        if (user1Map != null) {
+                          return streamLoad(
+                              stream: FirebaseFirestore.instance
+                                  .collection(DbPaths.collectionagents)
+                                  .doc(user2)
+                                  .snapshots(),
+                              placeholder: SizedBox(),
+                              onfetchdone: (user2Map) {
+                                if (user2Map != null) {
+                                  return myinkwell(
+                                    onTap: () {
+                                      pageNavigator(
+                                          context,
+                                          AgentToAgentChatRoom(
+                                            onDelete: () {
+                                              setState(() {});
+                                            },
+                                            chatroomID:
+                                                chats[i].reference.id,
+                                            lhsUserID: user1,
+                                            lhsUserName:
+                                                user1Map[Dbkeys.nickname],
+                                            lhsUserPhoto:
+                                                user1Map[Dbkeys.photoUrl],
+                                            rhsUserID: user2,
+                                            rhsUserName:
+                                                user2Map[Dbkeys.nickname],
+                                            rhsUserPhoto:
+                                                user2Map[Dbkeys.photoUrl],
+                                            chatRoomDoc: chats[i],
+                                          ));
+                                    },
+                                    child: Container(
+                                      padding: EdgeInsets.all(6),
+                                      child: Card(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(13.0),
+                                          child: Column(
+                                            children: [
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  MtCustomfontBoldSemi(
+                                                    text:
+                                                        "${getTranslatedForCurrentUser(this.context, 'xxxchatidxxx')} ${chats[i].reference.id}",
+                                                    fontsize: 11,
+                                                    color: Mycolors.grey,
+                                                  ),
+                                                  Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment.end,
+                                                    children: [
+                                                      Icon(
+                                                        Icons.message,
+                                                        color: Mycolors.grey
+                                                            .withOpacity(0.3),
+                                                        size: 14,
+                                                      ),
+                                                      SizedBox(
+                                                        width: 7,
+                                                      ),
+                                                      MtCustomfontBold(
+                                                        text: formatTimeDateCOMLPETEString(
+                                                            context:
+                                                                this.context,
+                                                            timestamp: chats[i][
                                                                 Dbkeys
-                                                                    .lastMessageTime,
-                                                                descending:
-                                                                    true));
-                                                  },
-                                                  chatRoomDoc: chats[i],
-                                                  chatroomID:
-                                                      chats[i].reference.id,
-                                                  lhsUserID: user1,
-                                                  rhsUserID: user2,
-                                                  lhsUserName:
-                                                      user1Map[Dbkeys.nickname],
-                                                  rhsUserName:
-                                                      user2Map[Dbkeys.nickname],
-                                                  lhsUserPhoto:
-                                                      user1Map[Dbkeys.photoUrl],
-                                                  rhsUserPhoto:
-                                                      user2Map[Dbkeys.photoUrl],
-                                                ));
-                                          },
-                                          child: Container(
-                                            padding: EdgeInsets.all(6),
-                                            child: Card(
-                                              child: Padding(
-                                                padding:
-                                                    const EdgeInsets.all(13.0),
-                                                child: Column(
-                                                  children: [
-                                                    Row(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .spaceBetween,
-                                                      children: [
-                                                        MtCustomfontBoldSemi(
-                                                          text:
-                                                              "${getTranslatedForCurrentUser(this.context, 'xxxchatidxxx')} ${chats[i].reference.id}",
-                                                          fontsize: 11,
-                                                          color: Mycolors.grey,
-                                                        ),
-                                                        Row(
-                                                          mainAxisAlignment:
-                                                              MainAxisAlignment
-                                                                  .end,
+                                                                    .lastMessageTime]),
+                                                        fontsize: 11,
+                                                        color: Mycolors.primary,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                              Divider(),
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  SizedBox(
+                                                      width: MediaQuery.of(
+                                                                  context)
+                                                              .size
+                                                              .width /
+                                                          2.9,
+                                                      child: myinkwell(
+                                                        onTap: () {
+                                                          pageNavigator(
+                                                              this.context,
+                                                              AgentProfileDetails(
+                                                                agentID: AgentModel
+                                                                        .fromJson(
+                                                                            user1Map)
+                                                                    .id,
+                                                                agent:
+                                                                    AgentModel
+                                                                        .fromJson(
+                                                                            user1Map),
+                                                                currentuserid:
+                                                                    Optionalconstants
+                                                                        .currentAdminID,
+                                                              ));
+                                                        },
+                                                        child: Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
                                                           children: [
-                                                            Icon(
-                                                              Icons.message,
-                                                              color: Mycolors
-                                                                  .grey
-                                                                  .withOpacity(
-                                                                      0.3),
-                                                              size: 14,
+                                                            Stack(
+                                                              children: [
+                                                                customCircleAvatar(
+                                                                  radius: 17,
+                                                                  url: user1Map[
+                                                                      Dbkeys
+                                                                          .photoUrl],
+                                                                ),
+                                                                user1Map[Dbkeys
+                                                                            .lastSeen] ==
+                                                                        true
+                                                                    ? Positioned(
+                                                                        top: 0,
+                                                                        left: 0,
+                                                                        child:
+                                                                            CircleAvatar(
+                                                                          radius:
+                                                                              6,
+                                                                          backgroundColor:
+                                                                              Mycolors
+                                                                                  .white,
+                                                                          child:
+                                                                              CircleAvatar(
+                                                                            backgroundColor:
+                                                                                Mycolors.onlinetag,
+                                                                            radius:
+                                                                                4,
+                                                                          ),
+                                                                        ))
+                                                                    : SizedBox(),
+                                                              ],
                                                             ),
                                                             SizedBox(
-                                                              width: 7,
+                                                              height: 15,
                                                             ),
-                                                            MtCustomfontBold(
-                                                              text: formatTimeDateCOMLPETEString(
-                                                                  context: this
-                                                                      .context,
-                                                                  timestamp: chats[
-                                                                          i][
-                                                                      Dbkeys
-                                                                          .lastMessageTime]),
-                                                              fontsize: 11,
-                                                              color: Mycolors
-                                                                  .primary,
+                                                            MtCustomfontMedium(
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                              maxlines: 1,
+                                                              fontsize: 14,
+                                                              text: user1Map[
+                                                                  Dbkeys
+                                                                      .nickname],
                                                             ),
                                                           ],
                                                         ),
-                                                      ],
-                                                    ),
-                                                    Divider(),
-                                                    Row(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .spaceBetween,
-                                                      children: [
-                                                        SizedBox(
-                                                            width: MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .width /
-                                                                2.9,
-                                                            child: myinkwell(
-                                                              onTap: () {
-                                                                pageNavigator(
-                                                                    this.context,
-                                                                    AgentProfileDetails(
-                                                                      agentID:
-                                                                          AgentModel.fromJson(user1Map)
-                                                                              .id,
-                                                                      agent: AgentModel
-                                                                          .fromJson(
-                                                                              user1Map),
-                                                                      currentuserid:
-                                                                          Optionalconstants
-                                                                              .currentAdminID,
-                                                                    ));
-                                                              },
-                                                              child: Column(
-                                                                crossAxisAlignment:
-                                                                    CrossAxisAlignment
-                                                                        .start,
-                                                                children: [
-                                                                  Stack(
-                                                                    children: [
-                                                                      customCircleAvatar(
-                                                                        radius:
-                                                                            17,
-                                                                        url: user1Map[
-                                                                            Dbkeys.photoUrl],
-                                                                      ),
-                                                                      user1Map[Dbkeys.lastSeen] ==
-                                                                              true
-                                                                          ? Positioned(
-                                                                              top: 0,
-                                                                              left: 0,
-                                                                              child: CircleAvatar(
-                                                                                radius: 6,
-                                                                                backgroundColor: Mycolors.white,
-                                                                                child: CircleAvatar(
-                                                                                  backgroundColor: Mycolors.onlinetag,
-                                                                                  radius: 4,
-                                                                                ),
-                                                                              ))
-                                                                          : SizedBox(),
-                                                                    ],
-                                                                  ),
-                                                                  SizedBox(
-                                                                    height: 15,
-                                                                  ),
-                                                                  MtCustomfontMedium(
-                                                                    overflow:
-                                                                        TextOverflow
-                                                                            .ellipsis,
-                                                                    maxlines: 1,
-                                                                    fontsize:
-                                                                        14,
-                                                                    text: user1Map[
-                                                                        Dbkeys
-                                                                            .nickname],
-                                                                  ),
-                                                                ],
-                                                              ),
-                                                            )),
-                                                        Icon(
-                                                          Icons
-                                                              .connect_without_contact_outlined,
-                                                          size: 44,
-                                                          color:
-                                                              Mycolors.orange,
+                                                      )),
+                                                  Icon(
+                                                    Icons
+                                                        .connect_without_contact_outlined,
+                                                    size: 44,
+                                                    color: Mycolors.orange,
+                                                  ),
+                                                  SizedBox(
+                                                      width: MediaQuery.of(
+                                                                  context)
+                                                              .size
+                                                              .width /
+                                                          2.9,
+                                                      child: myinkwell(
+                                                        onTap: () {
+                                                          pageNavigator(
+                                                              this.context,
+                                                              AgentProfileDetails(
+                                                                agentID: AgentModel
+                                                                        .fromJson(
+                                                                            user2Map)
+                                                                    .id,
+                                                                agent:
+                                                                    AgentModel
+                                                                        .fromJson(
+                                                                            user2Map),
+                                                                currentuserid:
+                                                                    Optionalconstants
+                                                                        .currentAdminID,
+                                                              ));
+                                                        },
+                                                        child: Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .end,
+                                                          children: [
+                                                            Stack(
+                                                              children: [
+                                                                customCircleAvatar(
+                                                                  radius: 17,
+                                                                  url: user2Map[
+                                                                      Dbkeys
+                                                                          .photoUrl],
+                                                                ),
+                                                                user2Map[Dbkeys
+                                                                            .lastSeen] ==
+                                                                        true
+                                                                    ? Positioned(
+                                                                        top: 0,
+                                                                        right:
+                                                                            0,
+                                                                        child:
+                                                                            CircleAvatar(
+                                                                          radius:
+                                                                              6,
+                                                                          backgroundColor:
+                                                                              Mycolors
+                                                                                  .white,
+                                                                          child:
+                                                                              CircleAvatar(
+                                                                            backgroundColor:
+                                                                                Mycolors.onlinetag,
+                                                                            radius:
+                                                                                4,
+                                                                          ),
+                                                                        ))
+                                                                    : SizedBox(),
+                                                              ],
+                                                            ),
+                                                            SizedBox(
+                                                              height: 15,
+                                                            ),
+                                                            MtCustomfontMedium(
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                              maxlines: 1,
+                                                              textalign:
+                                                                  TextAlign.end,
+                                                              fontsize: 14,
+                                                              text: user2Map[
+                                                                  Dbkeys
+                                                                      .nickname],
+                                                            ),
+                                                          ],
                                                         ),
-                                                        SizedBox(
-                                                            width: MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .width /
-                                                                2.9,
-                                                            child: myinkwell(
-                                                              onTap: () {
-                                                                pageNavigator(
-                                                                    this.context,
-                                                                    AgentProfileDetails(
-                                                                      agentID:
-                                                                          AgentModel.fromJson(user2Map)
-                                                                              .id,
-                                                                      agent: AgentModel
-                                                                          .fromJson(
-                                                                              user2Map),
-                                                                      currentuserid:
-                                                                          Optionalconstants
-                                                                              .currentAdminID,
-                                                                    ));
-                                                              },
-                                                              child: Column(
-                                                                crossAxisAlignment:
-                                                                    CrossAxisAlignment
-                                                                        .end,
-                                                                children: [
-                                                                  Stack(
-                                                                    children: [
-                                                                      customCircleAvatar(
-                                                                        radius:
-                                                                            17,
-                                                                        url: user2Map[
-                                                                            Dbkeys.photoUrl],
-                                                                      ),
-                                                                      user2Map[Dbkeys.lastSeen] ==
-                                                                              true
-                                                                          ? Positioned(
-                                                                              top: 0,
-                                                                              right: 0,
-                                                                              child: CircleAvatar(
-                                                                                radius: 6,
-                                                                                backgroundColor: Mycolors.white,
-                                                                                child: CircleAvatar(
-                                                                                  backgroundColor: Mycolors.onlinetag,
-                                                                                  radius: 4,
-                                                                                ),
-                                                                              ))
-                                                                          : SizedBox(),
-                                                                    ],
-                                                                  ),
-                                                                  SizedBox(
-                                                                    height: 15,
-                                                                  ),
-                                                                  MtCustomfontMedium(
-                                                                    overflow:
-                                                                        TextOverflow
-                                                                            .ellipsis,
-                                                                    maxlines: 1,
-                                                                    textalign:
-                                                                        TextAlign
-                                                                            .end,
-                                                                    fontsize:
-                                                                        14,
-                                                                    text: user2Map[
-                                                                        Dbkeys
-                                                                            .nickname],
-                                                                  ),
-                                                                ],
-                                                              ),
-                                                            ))
-                                                      ],
-                                                    ),
-                                                    Divider(
-                                                      height: 27,
-                                                    ),
-                                                    MtCustomfontBold(
-                                                      text: getTranslatedForCurrentUser(
-                                                          this.context,
-                                                          'xxxviewchatroomxxx'),
-                                                      letterspacing: 1.2,
-                                                      color: Mycolors.orange,
-                                                      fontsize: 13,
-                                                    )
-                                                  ],
-                                                ),
+                                                      ))
+                                                ],
                                               ),
-                                            ),
+                                              Divider(
+                                                height: 27,
+                                              ),
+                                              MtCustomfontBold(
+                                                text: getTranslatedForCurrentUser(
+                                                    this.context,
+                                                    'xxxviewchatroomxxx'),
+                                                letterspacing: 1.2,
+                                                color: Mycolors.orange,
+                                                fontsize: 13,
+                                              )
+                                            ],
                                           ),
-                                        );
-                                      } else {
-                                        return SizedBox();
-                                      }
-                                    });
-                              } else {
-                                return SizedBox();
-                              }
-                            });
-                      }),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                } else {
+                                  return SizedBox();
+                                }
+                              });
+                        } else {
+                          return SizedBox();
+                        }
+                      });
+                },
+              );
+            },
+          ),
     );
   }
 }

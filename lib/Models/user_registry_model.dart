@@ -52,30 +52,30 @@ class UserRegistryModel {
 
   factory UserRegistryModel.fromJson(Map<String, dynamic> doc) {
     return UserRegistryModel(
-      fullname: doc[Dbkeys.rgstFULLNAME],
-      shortname: doc[Dbkeys.rgstSHORTNAME],
-      photourl: doc[Dbkeys.rgstPHOTOURL],
-      phone: doc[Dbkeys.rgstPHONE],
-      usertype: doc[Dbkeys.rgstUSERTYPE],
-      id: doc[Dbkeys.rgstUSERID],
-      extra1: doc[Dbkeys.rgstEXTRA1],
-      extra2: doc[Dbkeys.rgstEXTRA2],
-      email: doc[Dbkeys.rgstEMAIL],
-      extraMap: doc[Dbkeys.rgstEXTRAMAP],
+      fullname: doc[Dbkeys.rgstFULLNAME] ?? "",
+      shortname: doc[Dbkeys.rgstSHORTNAME] ?? "",
+      photourl: doc[Dbkeys.rgstPHOTOURL] ?? "",
+      phone: doc[Dbkeys.rgstPHONE] ?? "",
+      usertype: doc[Dbkeys.rgstUSERTYPE] ?? 0,
+      id: doc[Dbkeys.rgstUSERID] ?? "",
+      extra1: doc[Dbkeys.rgstEXTRA1] ?? "",
+      extra2: doc[Dbkeys.rgstEXTRA2] ?? "",
+      email: doc[Dbkeys.rgstEMAIL] ?? "",
+      extraMap: doc[Dbkeys.rgstEXTRAMAP] ?? {},
     );
   }
   factory UserRegistryModel.fromSnapshot(DocumentSnapshot doc) {
     return UserRegistryModel(
-      fullname: doc[Dbkeys.rgstFULLNAME],
-      shortname: doc[Dbkeys.rgstSHORTNAME],
-      photourl: doc[Dbkeys.rgstPHOTOURL],
-      phone: doc[Dbkeys.rgstPHONE],
-      usertype: doc[Dbkeys.rgstUSERTYPE],
-      id: doc[Dbkeys.rgstUSERID],
-      extra1: doc[Dbkeys.rgstEXTRA1],
-      extra2: doc[Dbkeys.rgstEXTRA2],
-      email: doc[Dbkeys.rgstEMAIL],
-      extraMap: doc[Dbkeys.rgstEXTRAMAP],
+      fullname: doc[Dbkeys.rgstFULLNAME] ?? "",
+      shortname: doc[Dbkeys.rgstSHORTNAME] ?? "",
+      photourl: doc[Dbkeys.rgstPHOTOURL] ?? "",
+      phone: doc[Dbkeys.rgstPHONE] ?? "",
+      usertype: doc[Dbkeys.rgstUSERTYPE] ?? 0,
+      id: doc[Dbkeys.rgstUSERID] ?? "",
+      extra1: doc[Dbkeys.rgstEXTRA1] ?? "",
+      extra2: doc[Dbkeys.rgstEXTRA2] ?? "",
+      email: doc[Dbkeys.rgstEMAIL] ?? "",
+      extraMap: doc[Dbkeys.rgstEXTRAMAP] ?? {},
     );
   }
 

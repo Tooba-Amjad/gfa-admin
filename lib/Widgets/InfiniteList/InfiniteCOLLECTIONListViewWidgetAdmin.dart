@@ -61,14 +61,20 @@ class _InfiniteCOLLECTIONListViewWidgetAdminState
       widget.firestoreDataProviderREPORTS!
           .fetchNextData(widget.datatype, widget.refdata, true);
     } else if (widget.datatype == Dbkeys.dataTypeMESSAGES) {
+      print('🔵 InfiniteCOLLECTIONListViewWidgetAdmin - Initializing MESSAGES');
       widget.firestoreDataProviderMESSAGES!
           .fetchNextData(widget.datatype, widget.refdata, true);
+      print('🔵 InfiniteCOLLECTIONListViewWidgetAdmin - Calling startListening');
+      widget.firestoreDataProviderMESSAGES!.startListening(widget.refdata!);
     } else {}
   }
 
   @override
   void dispose() {
     scrollController.dispose();
+    if (widget.datatype == Dbkeys.dataTypeMESSAGES) {
+      widget.firestoreDataProviderMESSAGES!.stopListening();
+    }
     super.dispose();
   }
 

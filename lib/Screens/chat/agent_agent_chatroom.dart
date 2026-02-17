@@ -13,10 +13,11 @@ import 'package:thinkcreative_technologies/Services/firebase_services/FirebaseAp
 import 'package:thinkcreative_technologies/Services/my_providers/firestore_collections_data_admin.dart';
 import 'package:thinkcreative_technologies/Services/my_providers/observer.dart';
 import 'package:thinkcreative_technologies/Utils/utils.dart';
-import 'package:thinkcreative_technologies/Widgets/InfiniteList/InfiniteCOLLECTIONListViewWidgetAdmin.dart';
 import 'package:thinkcreative_technologies/Widgets/WarningWidgets/warning_tile.dart';
 import 'package:thinkcreative_technologies/Widgets/dialogs/CustomDialog.dart';
+import 'package:thinkcreative_technologies/Widgets/dialogs/loadingDialog.dart';
 import 'package:thinkcreative_technologies/Widgets/my_scaffold.dart';
+import 'package:thinkcreative_technologies/Widgets/nodata_widget.dart';
 
 class AgentToAgentChatRoom extends StatefulWidget {
   final Function onDelete;
@@ -51,11 +52,37 @@ class _AgentToAgentChatRoomState extends State<AgentToAgentChatRoom> {
   final _reason = TextEditingController();
 
   var chatroomDoc;
+  late Stream<DocumentSnapshot> _docStream;
+  late Stream<QuerySnapshot> _msgStream;
+
   @override
   void initState() {
     super.initState();
     chatroomDoc = widget.chatRoomDoc;
+    _initStreams();
     deleteAllOldMssgs();
+  }
+
+  void _initStreams() {
+    _docStream = FirebaseFirestore.instance
+        .collection(DbPaths.collectionAgentIndividiualmessages)
+        .doc(widget.chatroomID)
+        .snapshots();
+
+    _msgStream = FirebaseFirestore.instance
+        .collection(DbPaths.collectionAgentIndividiualmessages)
+        .doc(widget.chatroomID)
+        .collection(widget.chatroomID)
+        .orderBy(Dbkeys.timestamp, descending: true)
+        .snapshots();
+  }
+
+  @override
+  void didUpdateWidget(AgentToAgentChatRoom oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.chatroomID != widget.chatroomID) {
+      _initStreams();
+    }
   }
 
   deleteAllOldMssgs() async {
@@ -82,34 +109,6 @@ class _AgentToAgentChatRoomState extends State<AgentToAgentChatRoom> {
     return MyScaffold(
       iconWidget: Row(
         children: [
-          IconButton(
-              onPressed: () {
-                final provider = Provider.of<FirestoreDataProviderCHATMESSAGES>(
-                    this.context,
-                    listen: false);
-
-                FirebaseFirestore.instance
-                    .collection(DbPaths.collectionAgentIndividiualmessages)
-                    .doc(widget.chatroomID)
-                    .get()
-                    .then((value) {
-                  if (value.exists) {
-                    chatroomDoc = value;
-                  }
-                });
-                provider.reset();
-                provider.fetchNextData(
-                    Dbkeys.dataTypeMESSAGES,
-                    FirebaseFirestore.instance
-                        .collection(DbPaths.collectionAgentIndividiualmessages)
-                        .doc(widget.chatroomID)
-                        .collection(widget.chatroomID),
-                    false);
-              },
-              icon: Icon(
-                Icons.replay_outlined,
-                color: Mycolors.secondary,
-              )),
           IconButton(
               onPressed: AppConstants.isdemomode == true
                   ? () {
@@ -265,141 +264,127 @@ class _AgentToAgentChatRoomState extends State<AgentToAgentChatRoom> {
                   fit: BoxFit.cover),
             ),
           ),
-          Consumer<FirestoreDataProviderCHATMESSAGES>(
-              builder: (context, firetsoreProvider, _child) =>
-                  InfiniteCOLLECTIONListViewWidgetAdmin(
-                    isreverse: true,
-                    firestoreDataProviderMESSAGES: firetsoreProvider,
-                    datatype: Dbkeys.dataTypeMESSAGES,
-                    refdata: FirebaseFirestore.instance
-                        .collection(DbPaths.collectionAgentIndividiualmessages)
-                        .doc(widget.chatroomID)
-                        .collection(widget.chatroomID),
-                    list: Column(
-                      children: [
-                        firetsoreProvider.recievedDocs.length == 0 ||
-                                firetsoreProvider.isFetchingData == true
-                            ? SizedBox()
-                            : firetsoreProvider.hasNext == false
-                                ? warningTile(
-                                    title: observer.userAppSettingsDoc!
-                                                .defaultMessageDeletingTimeForOneToOneChat ==
-                                            0
-                                        ? getTranslatedForCurrentUser(
-                                            this.context,
-                                            'xxmssgautodeletenotxxx')
-                                        : getTranslatedForCurrentUser(
-                                                this.context,
-                                                'xxxmssgautodeletexxx')
-                                            .replaceAll('(####)',
-                                                '<bold>${observer.userAppSettingsDoc!.defaultMessageDeletingTimeForOneToOneChat}</bold>'),
-                                    warningTypeIndex: WarningType.alert.index,
-                                    isstyledtext: true)
-                                : SizedBox(),
-                        ListView.builder(
-                            // reverse: true,
-                            // padding: EdgeInsets.only(bottom: 150),
-                            physics: ScrollPhysics(),
-                            shrinkWrap: true,
-                            itemCount: firetsoreProvider.recievedDocs.length,
-                            itemBuilder: (BuildContext context, int i) {
-                              var mssg = firetsoreProvider.recievedDocs[i];
-                              bool isLHS =
-                                  mssg[Dbkeys.from] == widget.lhsUserID;
-                              return InkWell(
-                                onLongPress: () {
-                                  HapticFeedback.mediumImpact();
-                                  ShowConfirmWithInputTextDialog().open(
-                                      context: this.context,
-                                      controller: _reason,
-                                      title: getTranslatedForCurrentUser(
-                                          this.context, 'xxxdltmssgxxx'),
-                                      subtitle: getTranslatedForCurrentUser(
-                                              this.context, 'xxxdltmssglongxxx')
-                                          .replaceAll('(####)',
-                                              ' ${mssg[Dbkeys.timestamp]}'),
-                                      rightbtntext: getTranslatedForCurrentUser(
-                                              this.context, 'xxdeletexx')
-                                          .toUpperCase(),
-                                      rightbtnonpress: () async {
-                                        Navigator.of(this.context).pop();
-                                        ShowLoading().open(
-                                            context: this.context,
-                                            key: _keyLoader3q2);
-                                        await FirebaseFirestore.instance
-                                            .collection(DbPaths
-                                                .collectionAgentIndividiualmessages)
-                                            .doc(widget.chatroomID)
-                                            .collection(widget.chatroomID)
-                                            .doc(mssg[Dbkeys.timestamp]
-                                                .toString())
-                                            .update({
-                                          Dbkeys.hasSenderDeleted: true,
-                                          Dbkeys.deletedType: DeletedType
-                                              .adminDeleted.index
-                                              .toString(),
-                                          Dbkeys.deletedReason:
-                                              _reason.text.trim().length < 1
-                                                  ? ""
-                                                  : _reason.text.trim(),
-                                        }).then((value) {
-                                          ShowLoading().close(
-                                              context: this.context,
-                                              key: _keyLoader3q2);
-                                          Utils.toast(
-                                              getTranslatedForCurrentUser(
-                                                  this.context,
-                                                  'xxmsgdeletedxx'));
-                                          final provider = Provider.of<
-                                                  FirestoreDataProviderCHATMESSAGES>(
-                                              this.context,
-                                              listen: false);
+          StreamBuilder<DocumentSnapshot>(
+            stream: _docStream,
+            builder: (context, chatRoomSnapshot) {
+              return StreamBuilder<QuerySnapshot>(
+                stream: _msgStream,
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Text('Error: ${snapshot.error}'),
+                    );
+                  }
 
-                                          FirebaseFirestore.instance
-                                              .collection(DbPaths
-                                                  .collectionAgentIndividiualmessages)
-                                              .doc(widget.chatroomID)
-                                              .get()
-                                              .then((value) {
-                                            if (value.exists) {
-                                              chatroomDoc = value;
-                                            }
-                                          });
-                                          provider.reset();
-                                          provider.fetchNextData(
-                                              Dbkeys.dataTypeMESSAGES,
-                                              FirebaseFirestore.instance
-                                                  .collection(DbPaths
-                                                      .collectionAgentIndividiualmessages)
-                                                  .doc(widget.chatroomID)
-                                                  .collection(
-                                                      widget.chatroomID),
-                                              false);
-                                        }).catchError((e) {
-                                          ShowLoading().close(
-                                              context: this.context,
-                                              key: _keyLoader3q2);
-                                          Utils.toast(
-                                              "${getTranslatedForCurrentUser(this.context, 'xxfailedxx')} $e");
-                                        });
-                                      });
-                                },
-                                child: chatBubble(
-                                    context: this.context,
-                                    lhsUserID: widget.lhsUserID,
-                                    rhsUserID: widget.rhsUserID,
-                                    lhsUserPhoto: widget.lhsUserPhoto,
-                                    rhsUserPhoto: widget.rhsUserPhoto,
-                                    lhsUsername: widget.lhsUserName,
-                                    rhsUsername: widget.rhsUserName,
-                                    isLHS: isLHS,
-                                    chatMssgDoc: mssg,
-                                    chatRoomDoc: chatroomDoc),
-                              );
-                            }),
-                      ],
-                    ),
-                  )),
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: circularProgress());
+                  }
+
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return noDataWidget(
+                      iconData: Icons.message_outlined,
+                      context: context,
+                      padding: EdgeInsets.fromLTRB(28,
+                          MediaQuery.of(context).size.height / 3.7, 28, 10),
+                      title: getTranslatedForCurrentUser(
+                          context, 'xxnorecentchatsxx'),
+                    );
+                  }
+
+                  List<QueryDocumentSnapshot> messages = snapshot.data!.docs.cast<QueryDocumentSnapshot>();
+
+                  return ListView.builder(
+                    reverse: true,
+                    padding: EdgeInsets.only(bottom: 20, top: 20),
+                    itemCount: messages.length + 1,
+                    itemBuilder: (BuildContext context, int i) {
+                      // Show warning tile at the end (top of list when reversed)
+                      if (i == messages.length) {
+                        return warningTile(
+                          title: observer.userAppSettingsDoc!
+                                      .defaultMessageDeletingTimeForOneToOneChat ==
+                                  0
+                              ? getTranslatedForCurrentUser(
+                                  this.context, 'xxmssgautodeletenotxxx')
+                              : getTranslatedForCurrentUser(
+                                      this.context, 'xxxmssgautodeletexxx')
+                                  .replaceAll('(####)',
+                                      '<bold>${observer.userAppSettingsDoc!.defaultMessageDeletingTimeForOneToOneChat}</bold>'),
+                          warningTypeIndex: WarningType.alert.index,
+                          isstyledtext: true,
+                        );
+                      }
+
+                      var mssgSnapshot = messages[i];
+                      var mssg = mssgSnapshot.data() as Map<String, dynamic>;
+                      bool isLHS = mssg[Dbkeys.from] == widget.lhsUserID;
+
+                      return InkWell(
+                        onLongPress: () {
+                          HapticFeedback.mediumImpact();
+                          ShowConfirmWithInputTextDialog().open(
+                            context: this.context,
+                            controller: _reason,
+                            title: getTranslatedForCurrentUser(
+                                this.context, 'xxxdltmssgxxx'),
+                            subtitle: getTranslatedForCurrentUser(
+                                    this.context, 'xxxdltmssglongxxx')
+                                .replaceAll(
+                                    '(####)', ' ${mssg[Dbkeys.timestamp]}'),
+                            rightbtntext: getTranslatedForCurrentUser(
+                                    this.context, 'xxdeletexx')
+                                .toUpperCase(),
+                            rightbtnonpress: () async {
+                              Navigator.of(this.context).pop();
+                              ShowLoading()
+                                  .open(context: this.context, key: _keyLoader3q2);
+                              await FirebaseFirestore.instance
+                                  .collection(DbPaths
+                                      .collectionAgentIndividiualmessages)
+                                  .doc(widget.chatroomID)
+                                  .collection(widget.chatroomID)
+                                  .doc(mssg[Dbkeys.timestamp].toString())
+                                  .update({
+                                Dbkeys.hasSenderDeleted: true,
+                                Dbkeys.deletedType:
+                                    DeletedType.adminDeleted.index.toString(),
+                                Dbkeys.deletedReason:
+                                    _reason.text.trim().length < 1
+                                        ? ""
+                                        : _reason.text.trim(),
+                              }).then((value) {
+                                ShowLoading().close(
+                                    context: this.context, key: _keyLoader3q2);
+                                Utils.toast(getTranslatedForCurrentUser(
+                                    this.context, 'xxmsgdeletedxx'));
+                              }).catchError((e) {
+                                ShowLoading().close(
+                                    context: this.context, key: _keyLoader3q2);
+                                Utils.toast(
+                                    "${getTranslatedForCurrentUser(this.context, 'xxfailedxx')} $e");
+                              });
+                            },
+                          );
+                        },
+                        child: chatBubble(
+                          context: this.context,
+                          lhsUserID: widget.lhsUserID,
+                          rhsUserID: widget.rhsUserID,
+                          lhsUserPhoto: widget.lhsUserPhoto,
+                          rhsUserPhoto: widget.rhsUserPhoto,
+                          lhsUsername: widget.lhsUserName,
+                          rhsUsername: widget.rhsUserName,
+                          isLHS: isLHS,
+                          chatMssgDoc: mssg,
+                          chatRoomDoc: chatRoomSnapshot.data,
+                        ),
+                      );
+                    },
+                  );
+                },
+              );
+            },
+          ),
         ],
       ),
     );

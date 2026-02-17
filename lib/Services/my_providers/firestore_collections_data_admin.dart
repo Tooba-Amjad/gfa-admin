@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:flutter/material.dart';
@@ -383,6 +384,7 @@ class FirestoreDataProviderCHATMESSAGES extends ChangeNotifier {
   String _errorMessage = '';
   bool _hasNext = true;
   bool isFetchingData = false;
+  StreamSubscription? _subscription;
 
   String get errorMessage => _errorMessage;
 
@@ -395,11 +397,11 @@ class FirestoreDataProviderCHATMESSAGES extends ChangeNotifier {
       }).toList();
 
   reset() {
+    _subscription?.cancel();
     _hasNext = true;
     _datalistSnapshot.clear();
     isFetchingData = false;
     _errorMessage = '';
-    recievedDocs.clear();
     notifyListeners();
   }
 
@@ -414,7 +416,6 @@ class FirestoreDataProviderCHATMESSAGES extends ChangeNotifier {
       final snap = isAfterNewdocCreated == true
           ? await FirebaseApi.getFirestoreCOLLECTIONData(
               Numberlimits.totalDatatoLoadAtOnceFromFirestore,
-              // startAfter: null,
               refdata: refdataa)
           : await FirebaseApi.getFirestoreCOLLECTIONData(
               Numberlimits.totalDatatoLoadAtOnceFromFirestore,
@@ -425,9 +426,13 @@ class FirestoreDataProviderCHATMESSAGES extends ChangeNotifier {
         _datalistSnapshot.clear();
         _datalistSnapshot.addAll(snap.docs);
       } else {
-        _datalistSnapshot.addAll(snap.docs);
+        // Avoid duplicates if listener is also running
+        for (var doc in snap.docs) {
+          if (!_datalistSnapshot.any((element) => element.id == doc.id)) {
+            _datalistSnapshot.add(doc);
+          }
+        }
       }
-      // notifyListeners();
       if (snap.docs.length < Numberlimits.totalDatatoLoadAtOnceFromFirestore)
         _hasNext = false;
       notifyListeners();
@@ -439,6 +444,48 @@ class FirestoreDataProviderCHATMESSAGES extends ChangeNotifier {
     isFetchingData = false;
   }
 
+  void startListening(Query query) {
+    print('🟢 FirestoreDataProviderCHATMESSAGES - startListening called');
+    _subscription?.cancel();
+    _subscription = query.snapshots().listen((snapshot) {
+      print('🟢 FirestoreDataProviderCHATMESSAGES - Received snapshot with ${snapshot.docChanges.length} changes');
+      for (var change in snapshot.docChanges) {
+        if (change.type == DocumentChangeType.added) {
+          if (!_datalistSnapshot.any((element) => element.id == change.doc.id)) {
+            _datalistSnapshot.insert(0, change.doc);
+            print('🟢 Added new message: ${change.doc.id}');
+          } else {
+            print('🟡 Skipped duplicate message: ${change.doc.id}');
+          }
+        } else if (change.type == DocumentChangeType.modified) {
+          int index = _datalistSnapshot
+              .indexWhere((element) => element.id == change.doc.id);
+          if (index != -1) {
+            _datalistSnapshot[index] = change.doc;
+            print('🟢 Modified message at index $index: ${change.doc.id}');
+          }
+        } else if (change.type == DocumentChangeType.removed) {
+          _datalistSnapshot
+              .removeWhere((element) => element.id == change.doc.id);
+          print('🟢 Removed message: ${change.doc.id}');
+        }
+      }
+      print('🟢 Total messages in list: ${_datalistSnapshot.length}');
+      notifyListeners();
+    });
+  }
+
+  void stopListening() {
+    _subscription?.cancel();
+    _subscription = null;
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+
   updateparticulardocinProvider(
       {required CollectionReference colRef,
       required String userid,
@@ -446,8 +493,10 @@ class FirestoreDataProviderCHATMESSAGES extends ChangeNotifier {
     int index =
         _datalistSnapshot.indexWhere((prod) => prod[Dbkeys.id] == userid);
     await colRef.doc(userid).get().then((value) {
-      _datalistSnapshot.removeAt(index);
-      _datalistSnapshot.insert(index, value);
+      if (index != -1) {
+        _datalistSnapshot.removeAt(index);
+        _datalistSnapshot.insert(index, value);
+      }
       notifyListeners();
       onfetchDone(value);
     });
@@ -462,10 +511,10 @@ class FirestoreDataProviderCHATMESSAGES extends ChangeNotifier {
     GlobalKey? keyloader,
     BuildContext? context,
   }) async {
-    int index =
-        _datalistSnapshot.indexWhere((prod) => prod[compareKey!] == compareVal);
-
-    _datalistSnapshot.removeAt(index);
+    _datalistSnapshot.removeWhere((element) {
+      final data = element.data() as Map<String, dynamic>?;
+      return data != null && data[compareKey!] == compareVal;
+    });
     notifyListeners();
   }
 }
