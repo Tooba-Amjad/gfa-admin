@@ -24,21 +24,32 @@ tasks.register<Delete>("clean") {
 }
 
 subprojects {
-    project.extra["compileSdk"] = 34
-    project.extra["minSdk"] = 21
-    project.extra["targetSdk"] = 34
-    project.extra["javaVersion"] = JavaVersion.VERSION_11
+    if (project.name == "app") {
+        return@subprojects
+    }
 
-    // Force JVM 17 for all Android projects
-    plugins.withType<com.android.build.gradle.BasePlugin>().configureEach {
-        val android = extensions.getByName("android") as com.android.build.gradle.BaseExtension
-        android.compileOptions {
-            sourceCompatibility = JavaVersion.VERSION_17
-            targetCompatibility = JavaVersion.VERSION_17
+    // Correct way to enforce Java 17 using the Toolchain service
+    val toolchainService = project.extensions.findByType(JavaToolchainService::class.java)
+    if (toolchainService != null) {
+        tasks.withType<JavaCompile>().configureEach {
+            javaCompiler.set(toolchainService.compilerFor {
+                languageVersion.set(JavaLanguageVersion.of(17))
+            })
+            // Explicitly force compatibility properties to satisfy Kotlin validation
+            sourceCompatibility = "17"
+            targetCompatibility = "17"
+            // Must clear this as it conflicts with Android builds
+            options.release.set(null as Int?)
+        }
+    } else {
+        // Fallback for projects without the service
+        tasks.withType<JavaCompile>().configureEach {
+            sourceCompatibility = "17"
+            targetCompatibility = "17"
+            options.release.set(null as Int?)
         }
     }
 
-    // Force JVM 17 for all Kotlin tasks
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
         kotlinOptions {
             jvmTarget = "17"

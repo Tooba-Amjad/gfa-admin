@@ -3,7 +3,11 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
-import 'package:gallery_saver/gallery_saver.dart';
+import 'package:gal/gal.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:dio/dio.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 import 'package:thinkcreative_technologies/Configs/my_colors.dart';
 import 'package:thinkcreative_technologies/Localization/language_constants.dart';
 import 'package:thinkcreative_technologies/Utils/utils.dart';
@@ -11,44 +15,72 @@ import 'package:thinkcreative_technologies/Utils/utils.dart';
 class GalleryDownloader {
   static void saveNetworkVideoInGallery(BuildContext context, String url,
       bool isFurtherOpenFile, String fileName, GlobalKey keyloader) async {
-    String path = url + "&ext=.mp4";
     Dialogs.showLoadingDialog(context, keyloader);
-    GallerySaver.saveVideo(path).then((success) async {
-      if (success == true) {
-        Navigator.of(keyloader.currentContext!, rootNavigator: true).pop();
+    try {
+      // Gal requires downloading the file first
+      final tempDir = await getTemporaryDirectory();
+      String savePath = '${tempDir.path}/$fileName.mp4';
+      await Dio().download(url, savePath);
 
-        Utils.toast(
-            "$fileName  " + getTranslatedForCurrentUser(context, 'xxsavedxx'));
-      } else {
-        Navigator.of(keyloader.currentContext!, rootNavigator: true).pop();
-        Utils.toast(getTranslatedForCurrentUser(context, 'xxfailedxx'));
+      // Check permissions
+      bool granted = await _requestPermission();
+      if (!granted) {
+        Navigator.of(keyloader.currentContext!, rootNavigator: true).pop(); // Dismiss loading
+        Utils.toast(getTranslatedForCurrentUser(context, 'xxfailedxx') + ": " + getTranslatedForCurrentUser(context, 'xxpermission_deniedxx'));
+        return;
       }
-    }).catchError((err) {
+
+      await Gal.putVideo(savePath);
       Navigator.of(keyloader.currentContext!, rootNavigator: true).pop();
-      Utils.toast(err.toString());
-    });
+      Utils.toast("$fileName  " + getTranslatedForCurrentUser(context, 'xxsavedxx'));
+      
+      // Cleanup temp file
+      File(savePath).delete().ignore();
+
+    } catch (e) {
+      if (Navigator.canPop(keyloader.currentContext!)) {
+        Navigator.of(keyloader.currentContext!, rootNavigator: true).pop();
+      }
+      Utils.toast(e.toString());
+    }
   }
 
   static void saveNetworkImage(BuildContext context, String url,
       bool isFurtherOpenFile, String fileName, GlobalKey keyloader) async {
-    // String path =
-    //     'https://image.shutterstock.com/image-photo/montreal-canada-july-11-2019-600w-1450023539.jpg';
-
-    String path = url + "&ext=.jpg";
     Dialogs.showLoadingDialog(context, keyloader);
-    GallerySaver.saveImage(path, toDcim: true).then((success) async {
-      if (success == true) {
+    try {
+      // Gal requires downloading the file first for network images if not using putImageBytes
+      final tempDir = await getTemporaryDirectory();
+      String savePath = '${tempDir.path}/$fileName.jpg'; // Assuming jpg, logic might need adjustment for other formats if 'url' doesn't have it
+      await Dio().download(url, savePath);
+
+      // Check permissions
+      bool granted = await _requestPermission();
+      if (!granted) {
         Navigator.of(keyloader.currentContext!, rootNavigator: true).pop();
-        Utils.toast(
-            "$fileName  " + getTranslatedForCurrentUser(context, 'xxsavedxx'));
-      } else {
-        Utils.toast(getTranslatedForCurrentUser(context, 'xxfailedxx'));
+        Utils.toast(getTranslatedForCurrentUser(context, 'xxfailedxx') + ": " + getTranslatedForCurrentUser(context, 'xxpermission_deniedxx'));
+        return;
+      }
+
+      await Gal.putImage(savePath);
+      Navigator.of(keyloader.currentContext!, rootNavigator: true).pop();
+      Utils.toast("$fileName  " + getTranslatedForCurrentUser(context, 'xxsavedxx'));
+      
+      // Cleanup temp file
+      File(savePath).delete().ignore();
+
+    } catch (e) {
+      if (Navigator.canPop(keyloader.currentContext!)) {
         Navigator.of(keyloader.currentContext!, rootNavigator: true).pop();
       }
-    }).catchError((err) {
-      Navigator.of(keyloader.currentContext!, rootNavigator: true).pop();
-      Utils.toast(err.toString());
-    });
+      Utils.toast(e.toString());
+    }
+  }
+
+  static Future<bool> _requestPermission() async {
+    // Gal handles permissions internally for the most part, but good to be explicit for Android 10-
+    // However, Gal.requestAccess() corresponds to the required access.
+    return await Gal.requestAccess();
   }
 }
 

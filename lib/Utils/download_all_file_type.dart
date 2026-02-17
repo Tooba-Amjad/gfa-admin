@@ -3,7 +3,7 @@
 // ignore_for_file: deprecated_member_use
 
 import 'dart:io';
-import 'package:open_file_plus/open_file_plus.dart';
+import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as p;
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
