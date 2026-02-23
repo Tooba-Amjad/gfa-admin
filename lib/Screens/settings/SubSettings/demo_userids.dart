@@ -184,7 +184,7 @@ class _DemoUserIDsState extends State<DemoUserIDs> {
                           child: MtCustomfontRegular(
                             fontsize: 13,
                             text:
-                                "Add already registered User ID of Agents / Customers for those who will be using the demo account with only Viewing rights from the User app.\n\nMulti- device login & Demo functionalities will be turned ON for these users.",
+                                "Add already registered User ID of Agents for those who will be using the demo account with only Viewing rights from the User app.\n\nMulti- device login & Demo functionalities will be turned ON for these users.",
                           )),
                       Card(
                         elevation: 0.1,
@@ -195,21 +195,90 @@ class _DemoUserIDsState extends State<DemoUserIDs> {
                             children: [
                               InpuTextBox(
                                 controller: _controller,
-                                title: "Agent / Customer ID",
+                                title: "Agent ID",
                                 hinttext: "Enter User ID",
                               ),
-                              InputGroup4Large(
-                                val4: 'Second Admin',
-                                val3: 'Dept. manager',
-                                title: 'User type',
-                                val1: 'Agent',
-                                val2: 'Customer',
-                                selectedvalue: selectval,
-                                onChanged: (val) async {
-                                  setState(() {
-                                    selectval = val.toString();
-                                  });
-                                },
+                              Align(
+                                child: Container(
+                                  margin: EdgeInsets.fromLTRB(4, 10, 4, 10),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.fromLTRB(4, 0, 7, 5),
+                                        child: MtPoppinsSemiBold(
+                                          color: Mycolors.grey,
+                                          fontsize: 13,
+                                          text: 'User type',
+                                        ),
+                                      ),
+                                      Container(
+                                        decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            border: Border.all(
+                                                color: Mycolors.greylightcolor,
+                                                width: 1.5),
+                                            borderRadius: BorderRadius.all(Radius.circular(5))),
+                                        child: Column(
+                                          children: [
+                                            Row(
+                                              children: <Widget>[
+                                                Expanded(
+                                                  child: RadioListTile(
+                                                    contentPadding: EdgeInsets.zero,
+                                                    activeColor: Mycolors.primary,
+                                                    title: MtCustomfontRegular(fontsize: 11, text: 'Agent'),
+                                                    value: 'Agent',
+                                                    groupValue: selectval,
+                                                    onChanged: (val) {
+                                                      setState(() {
+                                                        selectval = val.toString();
+                                                      });
+                                                    },
+                                                  ),
+                                                ),
+                                                Container(width: 1.5, height: 45, color: Mycolors.greylightcolor),
+                                                Expanded(
+                                                  child: RadioListTile(
+                                                    contentPadding: EdgeInsets.zero,
+                                                    activeColor: Mycolors.primary,
+                                                    title: MtCustomfontRegular(fontsize: 11, text: 'Dept. manager'),
+                                                    value: 'Dept. manager',
+                                                    groupValue: selectval,
+                                                    onChanged: (val) {
+                                                      setState(() {
+                                                        selectval = val.toString();
+                                                      });
+                                                    },
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            Container(height: 1.5, color: Mycolors.greylightcolor),
+                                            Row(
+                                              children: <Widget>[
+                                                Expanded(
+                                                  child: RadioListTile(
+                                                    contentPadding: EdgeInsets.zero,
+                                                    activeColor: Mycolors.primary,
+                                                    title: MtCustomfontRegular(fontsize: 11, text: 'Second Admin'),
+                                                    value: 'Second Admin',
+                                                    groupValue: selectval,
+                                                    onChanged: (val) {
+                                                      setState(() {
+                                                        selectval = val.toString();
+                                                      });
+                                                    },
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
                             ],
                           ),

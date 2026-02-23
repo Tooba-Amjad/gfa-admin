@@ -278,7 +278,7 @@ class _AdmindashboardState extends State<Admindashboard> {
                 livedata.docmap[Dbkeys.secondadminID] == null
             ? false
             : true;
-    double expandHeight = 257;
+    double expandHeight = (userAppSettingsModel != null && userAppSettingsModel!.departmentBasedContent == true) ? 385.0 : 285.0;
     double w = MediaQuery.of(this.context).size.width;
     double h = MediaQuery.of(this.context).size.height;
 
@@ -468,7 +468,7 @@ class _AdmindashboardState extends State<Admindashboard> {
                                                         onTap: () {
                                                           provider
                                                               .setcurrentIndex(
-                                                                  4);
+                                                                  3);
                                                         },
                                                         child:
                                                             customCircleAvatar(
@@ -491,245 +491,126 @@ class _AdmindashboardState extends State<Admindashboard> {
                                                                 .start,
                                                         children: <Widget>[
                                                           Row(
-                                                            mainAxisAlignment:
-                                                                MainAxisAlignment
-                                                                    .center,
-                                                            children: userAppSettingsModel ==
-                                                                    null
-                                                                ? [
-                                                                    myinkwell(
-                                                                        onTap:
-                                                                            () {
-                                                                          provider
-                                                                              .setcurrentIndex(2);
-                                                                        },
-                                                                        child: dashboardCard(
-                                                                            width: w /
-                                                                                2.3,
-                                                                            cardColor:
-                                                                                Color(0xfff29b38),
-                                                                            label: getTranslatedForCurrentUser(this.context, 'xxagentsxx'),
-                                                                            value: '${session.userCount[Dbkeys.totalapprovedagents] + session.userCount[Dbkeys.totalblockedagents] + session.userCount[Dbkeys.totalpendingagents]}',
-                                                                            iconData: Icons.verified_user)),
-                                                                    myinkwell(
-                                                                      onTap:
-                                                                          () {
-                                                                        provider
-                                                                            .setcurrentIndex(1);
-                                                                      },
-                                                                      child: dashboardCard(
-                                                                          width: w /
-                                                                              2.3,
-                                                                          cardColor: Color(
-                                                                              0xffe15141),
-                                                                          label: getTranslatedForCurrentUser(
-                                                                              this
-                                                                                  .context,
-                                                                              'xxcustomersxx'),
-                                                                          value:
-                                                                              '${session.userCount[Dbkeys.totalapprovedcustomers] + session.userCount[Dbkeys.totalblockedcustomers] + session.userCount[Dbkeys.totalpendingcustomers]}',
-                                                                          iconData:
-                                                                              Icons.people_alt),
-                                                                    ),
-                                                                  ]
-                                                                : userAppSettingsModel!
-                                                                            .departmentBasedContent ==
-                                                                        true
-                                                                    ? [
-                                                                        myinkwell(
-                                                                            onTap:
-                                                                                () {
-                                                                              provider.setcurrentIndex(2);
-                                                                            },
-                                                                            child: dashboardCard(
-                                                                                width: w / 3.6,
-                                                                                cardColor: Color(0xfff29b38),
-                                                                                label: getTranslatedForCurrentUser(this.context, 'xxagentsxx'),
-                                                                                value: '${session.userCount[Dbkeys.totalapprovedagents] + session.userCount[Dbkeys.totalblockedagents] + session.userCount[Dbkeys.totalpendingagents]}',
-                                                                                iconData: Icons.verified_user)),
-                                                                        myinkwell(
-                                                                          onTap:
-                                                                              () {
-                                                                            provider.setcurrentIndex(1);
-                                                                          },
-                                                                          child: dashboardCard(
-                                                                              width: w / 3.6,
-                                                                              cardColor: Color(0xffe15141),
-                                                                              label: getTranslatedForCurrentUser(this.context, 'xxcustomersxx'),
-                                                                              value: '${session.userCount[Dbkeys.totalapprovedcustomers] + session.userCount[Dbkeys.totalblockedcustomers] + session.userCount[Dbkeys.totalpendingcustomers]}',
-                                                                              iconData: Icons.people_alt),
-                                                                        ),
-                                                                        myinkwell(
-                                                                          onTap:
-                                                                              () {
-                                                                            pageNavigator(this.context,
-                                                                                AllDepartmentList(isShowForSignleAgent: false, filteragentid: "", currentuserid: Optionalconstants.currentAdminID, onbackpressed: () {}));
-                                                                          },
-                                                                          child: dashboardCard(
-                                                                              width: w / 3.6,
-                                                                              cardColor: Colors.pink[600],
-                                                                              label: getTranslatedForCurrentUser(this.context, 'xxdepartmentsxx'),
-                                                                              value: '${userAppSettingsModel!.departmentList!.length - 1}',
-                                                                              iconData: Icons.location_city),
-                                                                        ),
-                                                                      ]
-                                                                    : [
-                                                                        myinkwell(
-                                                                            onTap:
-                                                                                () {
-                                                                              provider.setcurrentIndex(2);
-                                                                            },
-                                                                            child: dashboardCard(
-                                                                                width: w / 2.3,
-                                                                                cardColor: Color(0xfff29b38),
-                                                                                label: getTranslatedForCurrentUser(this.context, 'xxagentsxx'),
-                                                                                value: '${session.userCount[Dbkeys.totalapprovedagents] + session.userCount[Dbkeys.totalblockedagents] + session.userCount[Dbkeys.totalpendingagents]}',
-                                                                                iconData: Icons.verified_user)),
-                                                                        myinkwell(
-                                                                            onTap:
-                                                                                () {
-                                                                              provider.setcurrentIndex(1);
-                                                                            },
-                                                                            child: dashboardCard(
-                                                                                width: w / 2.3,
-                                                                                cardColor: Color(0xffe15141),
-                                                                                label: getTranslatedForCurrentUser(this.context, 'xxcustomersxx'),
-                                                                                value: '${session.userCount[Dbkeys.totalapprovedcustomers] + session.userCount[Dbkeys.totalblockedcustomers] + session.userCount[Dbkeys.totalpendingcustomers]}',
-                                                                                iconData: Icons.people_alt)),
-                                                                      ],
-                                                          ),
-                                                          Row(
-                                                            mainAxisAlignment:
-                                                                MainAxisAlignment
-                                                                    .center,
+                                                            mainAxisAlignment: MainAxisAlignment.center,
                                                             children: [
                                                               myinkwell(
-                                                                  onTap: userAppSettingsModel ==
-                                                                              null ||
-                                                                          session.dashboardData[Dbkeys.totalopentickets] + session.dashboardData[Dbkeys.totalclosedtickets] ==
-                                                                              0
-                                                                      ? () {}
-                                                                      : () {
-                                                                          pageNavigator(
-                                                                              this.context,
-                                                                              AllTickets(
-                                                                                userAppSettingsModel: userAppSettingsModel!,
-                                                                              ));
-                                                                        },
-                                                                  child:
-                                                                      futureLoadCollections(
-                                                                          future: FirebaseFirestore
-                                                                              .instance
-                                                                              .collection(DbPaths
-                                                                                  .collectiontickets)
-                                                                              .get(),
-                                                                          placeholder:
-                                                                              dashboardCard(
-                                                                            width:
-                                                                                w / 3.6,
-                                                                            iconData:
-                                                                                LineAwesomeIcons.alternate_ticket,
-                                                                            cardColor:
-                                                                                Color(0xff67ac5b),
-                                                                            label:
-                                                                                getTranslatedForCurrentUser(this.context, 'xxtktssxx'),
-                                                                            value:
-                                                                                '0',
+                                                                onTap: () {
+                                                                  provider.setcurrentIndex(1);
+                                                                },
+                                                                child: Container(
+                                                                  width: w * 0.92,
+                                                                  margin: EdgeInsets.fromLTRB(8, 8, 8, 8),
+                                                                  decoration: BoxDecoration(
+                                                                    gradient: LinearGradient(
+                                                                      colors: [Color(0xfff29b38), Color(0xffe87c1e)],
+                                                                      begin: Alignment.topLeft,
+                                                                      end: Alignment.bottomRight,
+                                                                    ),
+                                                                    borderRadius: BorderRadius.circular(12),
+                                                                    boxShadow: [
+                                                                      BoxShadow(color: Color(0xfff29b38).withOpacity(0.4), blurRadius: 10, offset: Offset(0, 4))
+                                                                    ],
+                                                                  ),
+                                                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                                                                  child: Row(
+                                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                                                    children: [
+                                                                      Column(
+                                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                                        mainAxisAlignment: MainAxisAlignment.center,
+                                                                        children: [
+                                                                          MtCustomfontBold(
+                                                                            text: getTranslatedForCurrentUser(this.context, 'xxagentsxx'),
+                                                                            fontsize: 16,
+                                                                            color: Colors.white.withOpacity(0.9),
                                                                           ),
-                                                                          noDataWidget:
-                                                                              dashboardCard(
-                                                                            width:
-                                                                                w / 3.6,
-                                                                            iconData:
-                                                                                LineAwesomeIcons.alternate_ticket,
-                                                                            cardColor:
-                                                                                Color(0xff67ac5b),
-                                                                            label:
-                                                                                getTranslatedForCurrentUser(this.context, 'xxtktssxx'),
-                                                                            value:
-                                                                                '0',
+                                                                          SizedBox(height: 10),
+                                                                          MtPoppinsBold(
+                                                                            text: '${session.userCount[Dbkeys.totalapprovedagents] + session.userCount[Dbkeys.totalblockedagents] + session.userCount[Dbkeys.totalpendingagents]}',
+                                                                            color: Colors.white,
+                                                                            fontsize: 34,
                                                                           ),
-                                                                          onfetchdone:
-                                                                              (m) {
-                                                                            return dashboardCard(
-                                                                              width: w / 3.6,
-                                                                              iconData: LineAwesomeIcons.alternate_ticket,
-                                                                              cardColor: Color(0xff67ac5b),
-                                                                              label: getTranslatedForCurrentUser(this.context, 'xxtktssxx'),
-                                                                              value: '${m.length}',
-                                                                            );
-                                                                          })),
+                                                                        ],
+                                                                      ),
+                                                                      Icon(
+                                                                        Icons.verified_user_rounded,
+                                                                        size: 60,
+                                                                        color: Colors.white.withOpacity(0.3),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                          if (userAppSettingsModel != null && userAppSettingsModel!.departmentBasedContent == true)
+                                                            Row(
+                                                              mainAxisAlignment: MainAxisAlignment.center,
+                                                              children: [
+                                                                myinkwell(
+                                                                  onTap: () {
+                                                                    pageNavigator(this.context, AllDepartmentList(isShowForSignleAgent: false, filteragentid: "", currentuserid: Optionalconstants.currentAdminID, onbackpressed: () {}));
+                                                                  },
+                                                                  child: dashboardCard(
+                                                                    width: w * 0.92,
+                                                                    cardColor: Colors.pink[600],
+                                                                    label: getTranslatedForCurrentUser(this.context, 'xxdepartmentsxx'),
+                                                                    value: '${userAppSettingsModel!.departmentList!.length - 1}',
+                                                                    iconData: Icons.location_city,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          Row(
+                                                            mainAxisAlignment: MainAxisAlignment.center,
+                                                            children: [
                                                               myinkwell(
                                                                 onTap: () {
-                                                                  pageNavigator(
-                                                                      this.context,
-                                                                      AllGroups());
+                                                                  pageNavigator(this.context, AllGroups());
                                                                 },
                                                                 child: dashboardCard(
-                                                                    width:
-                                                                        w / 3.6,
-                                                                    cardColor:
-                                                                        Color(
-                                                                            0xff49a6ef),
-                                                                    label: getTranslatedForCurrentUser(
-                                                                        this
-                                                                            .context,
-                                                                        'xxxgroupsxxx'),
-                                                                    value:
-                                                                        '${session.dashboardData[Dbkeys.totalAgentGroups]}',
-                                                                    iconData: Icons
-                                                                        .people),
+                                                                  width: w / 2.3,
+                                                                  cardColor: Color(0xff49a6ef),
+                                                                  label: getTranslatedForCurrentUser(this.context, 'xxxgroupsxxx'),
+                                                                  value: '${session.dashboardData[Dbkeys.totalAgentGroups]}',
+                                                                  iconData: Icons.people,
+                                                                ),
                                                               ),
                                                               myinkwell(
-                                                                  onTap: () {
-                                                                    pageNavigator(
-                                                                        this.context,
-                                                                        AllAgentsChat());
-                                                                  },
-                                                                  child: futureLoadCollections(
-                                                                      future: FirebaseFirestore.instance.collection(DbPaths.collectionAgentIndividiualmessages).get(),
-                                                                      placeholder: dashboardCard(
-                                                                          width: w / 3.6,
-                                                                          cardColor: Color(0xff9737b3),
-                                                                          label:
-                                                                              // russian lang has different tag for this string
-                                                                              Utils.checkIfNull(getTranslatedForCurrentUser(this.context, 'xxru130xx')) ?? '${getTranslatedForCurrentUser(this.context, 'xxagentxx')} - ${getTranslatedForCurrentUser(this.context, 'xxchatxx').toLowerCase()}',
-                                                                          value: '${session.dashboardData[Dbkeys.totalAgentChats]}',
-                                                                          iconData: Icons.person_add),
-                                                                      noDataWidget: dashboardCard(
-                                                                          width: w / 3.6,
-                                                                          cardColor: Color(0xff9737b3),
-                                                                          label: // russian lang has different tag for this string
-                                                                              Utils.checkIfNull(getTranslatedForCurrentUser(this.context, 'xxru130xx')) ?? '${getTranslatedForCurrentUser(this.context, 'xxagentxx')} - ${getTranslatedForCurrentUser(this.context, 'xxchatxx').toLowerCase()}',
-                                                                          value: '${session.dashboardData[Dbkeys.totalAgentChats]}',
-                                                                          iconData: Icons.person_add),
-                                                                      onfetchdone: (m) {
-                                                                        return dashboardCard(
-                                                                            width: w /
-                                                                                3.6,
-                                                                            cardColor:
-                                                                                Color(0xff9737b3),
-                                                                            label: // russian lang has different tag for this string
-                                                                                Utils.checkIfNull(getTranslatedForCurrentUser(this.context, 'xxru130xx')) ?? '${getTranslatedForCurrentUser(this.context, 'xxagentxx')} - ${getTranslatedForCurrentUser(this.context, 'xxchatxx').toLowerCase()}',
-                                                                            value: '${m.length}',
-                                                                            iconData: Icons.person_add);
-                                                                      })
-                                                                  // : dashboardCard(
-                                                                  //     width:
-                                                                  //         w / 3.6,
-                                                                  //     cardColor:
-                                                                  //         Color(
-                                                                  //             0xff9737b3),
-                                                                  //     label:
-                                                                  //         'Agent Chat',
-                                                                  //     value:
-                                                                  //         '${session.dashboardData[Dbkeys.totalAgentChats]}',
-                                                                  //     iconData: Icons
-                                                                  //         .person_add),
+                                                                onTap: () {
+                                                                  pageNavigator(this.context, AllAgentsChat());
+                                                                },
+                                                                child: futureLoadCollections(
+                                                                  future: FirebaseFirestore.instance.collection(DbPaths.collectionAgentIndividiualmessages).get(),
+                                                                  placeholder: dashboardCard(
+                                                                    width: w / 2.3,
+                                                                    cardColor: Color(0xff9737b3),
+                                                                    label: Utils.checkIfNull(getTranslatedForCurrentUser(this.context, 'xxru130xx')) ?? '${getTranslatedForCurrentUser(this.context, 'xxagentxx')} - ${getTranslatedForCurrentUser(this.context, 'xxchatxx').toLowerCase()}',
+                                                                    value: '${session.dashboardData[Dbkeys.totalAgentChats]}',
+                                                                    iconData: Icons.person_add,
                                                                   ),
+                                                                  noDataWidget: dashboardCard(
+                                                                    width: w / 2.3,
+                                                                    cardColor: Color(0xff9737b3),
+                                                                    label: Utils.checkIfNull(getTranslatedForCurrentUser(this.context, 'xxru130xx')) ?? '${getTranslatedForCurrentUser(this.context, 'xxagentxx')} - ${getTranslatedForCurrentUser(this.context, 'xxchatxx').toLowerCase()}',
+                                                                    value: '${session.dashboardData[Dbkeys.totalAgentChats]}',
+                                                                    iconData: Icons.person_add,
+                                                                  ),
+                                                                  onfetchdone: (m) {
+                                                                    return dashboardCard(
+                                                                      width: w / 2.3,
+                                                                      cardColor: Color(0xff9737b3),
+                                                                      label: Utils.checkIfNull(getTranslatedForCurrentUser(this.context, 'xxru130xx')) ?? '${getTranslatedForCurrentUser(this.context, 'xxagentxx')} - ${getTranslatedForCurrentUser(this.context, 'xxchatxx').toLowerCase()}',
+                                                                      value: '${m.length}',
+                                                                      iconData: Icons.person_add,
+                                                                    );
+                                                                  },
+                                                                ),
+                                                              ),
                                                             ],
-                                                          )
-                                                        ],
+                                                          ),
+                                                      ],
                                                       ),
                                                     ),
                                                   ),
@@ -992,7 +873,7 @@ class _AdmindashboardState extends State<Admindashboard> {
                                                       isthreecolumn: true,
                                                       onTap: () {
                                                         provider
-                                                            .setcurrentIndex(2);
+                                                            .setcurrentIndex(1);
                                                       },
                                                       cardcolor:
                                                           Color(0xFF282A4D),
@@ -1039,7 +920,7 @@ class _AdmindashboardState extends State<Admindashboard> {
                                                               isallowed:
                                                                   userAppSettingsModel !=
                                                                       null),
-                                                          eachGridTile(
+/*eachGridTile(
                                                               label: getTranslatedForCurrentUser(
                                                                       this
                                                                           .context,
@@ -1052,7 +933,7 @@ class _AdmindashboardState extends State<Admindashboard> {
                                                                       null
                                                                   ? false
                                                                   : userAppSettingsModel!
-                                                                      .departmentBasedContent),
+                                                                      .departmentBasedContent),*/
                                                           eachGridTile(
                                                               label:
                                                                   // russian lang has different tag for this string
@@ -1078,7 +959,7 @@ class _AdmindashboardState extends State<Admindashboard> {
                                                               isallowed: session
                                                                   .basicuserappsettings!
                                                                   .agentVerificationNeeded),
-                                                          eachGridTile(
+/*eachGridTile(
                                                               label:
                                                                   '${getTranslatedForCurrentUser(this.context, 'xxcustomerxx')}\n${getTranslatedForCurrentUser(this.context, 'xxloginxx')}',
                                                               width: w,
@@ -1094,7 +975,7 @@ class _AdmindashboardState extends State<Admindashboard> {
                                                               width: w,
                                                               isallowed: session
                                                                   .basicuserappsettings!
-                                                                  .customerVerificationNeeded),
+                                                                  .customerVerificationNeeded),*/
                                                           eachGridTile(
                                                               label: getTranslatedForCurrentUser(
                                                                   this.context,
@@ -1299,7 +1180,7 @@ class _AdmindashboardState extends State<Admindashboard> {
                                                         : SizedBox(
                                                             height: 24,
                                                           ),
-                                                    registry.customers.length ==
+/*registry.customers.length ==
                                                             0
                                                         ? SizedBox()
                                                         : Container(
@@ -1458,8 +1339,8 @@ class _AdmindashboardState extends State<Admindashboard> {
                                                         ? SizedBox()
                                                         : SizedBox(
                                                             height: 24,
-                                                          ),
-                                                    userAppSettingsModel == null
+                                                          ),*/
+/*userAppSettingsModel == null
                                                         ? SizedBox()
                                                         : Container(
                                                             // color: Colors.white,
@@ -1652,7 +1533,7 @@ class _AdmindashboardState extends State<Admindashboard> {
                                                                     }),
                                                               ],
                                                             ),
-                                                          ),
+                                                          ),*/
 
                                                     userAppSettingsModel == null
                                                         ? SizedBox()
@@ -2271,7 +2152,7 @@ class _AdmindashboardState extends State<Admindashboard> {
                                                     userAppSettingsModel == null
                                                         ? SizedBox()
                                                         : SizedBox(
-                                                            height: 17,
+                                                            height: 0,
                                                           ),
                                                     AppConstants.isdemomode ==
                                                             true
@@ -2302,13 +2183,9 @@ class _AdmindashboardState extends State<Admindashboard> {
                                                             ),
                                                           ),
                                                     SizedBox(
-                                                      height: AppConstants
-                                                                  .isdemomode ==
-                                                              true
-                                                          ? 0
-                                                          : 30,
+                                                      height: 0,
                                                     ),
-                                                    customcardStatistics(
+/*customcardStatistics(
                                                       isthreecolumn: true,
                                                       onTap: () {
                                                         provider
@@ -2339,10 +2216,10 @@ class _AdmindashboardState extends State<Admindashboard> {
                                                           getTranslatedForCurrentUser(
                                                               this.context,
                                                               'xxxpendingxxx'),
-                                                    ),
+                                                    ),*/
 
                                                     SizedBox(
-                                                      height: 15,
+                                                      height: 0,
                                                     ),
                                                     // myinkwell(
                                                     //   onTap: () {},
@@ -2366,7 +2243,7 @@ class _AdmindashboardState extends State<Admindashboard> {
                                                     // ),
 
                                                     SizedBox(
-                                                      height: 15,
+                                                      height: 0,
                                                     ),
                                                     recent5agents.length == 0
                                                         ? SizedBox()
@@ -2443,7 +2320,7 @@ class _AdmindashboardState extends State<Admindashboard> {
                                                                       onPressed:
                                                                           () {
                                                                         provider
-                                                                            .setcurrentIndex(2);
+                                                                            .setcurrentIndex(1);
                                                                       },
                                                                     ),
                                                                   ),

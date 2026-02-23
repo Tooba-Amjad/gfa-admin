@@ -319,7 +319,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     .replaceAll('(####)',
                         '<bold>${getTranslatedForCurrentUser(this.context, 'xxsecondadminxx')}</bold>'),
                 warningTypeIndex: WarningType.success.index),
-        customTile(
+/*customTile(
             margin: 8,
             iconsize: 35,
             leadingWidget: Container(
@@ -355,7 +355,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         .doc(DbPaths.appsettings),
                     currentuserid: widget.currentuserid,
                   ));
-            }),
+            }),*/
         customTile(
             margin: 8,
             iconsize: 35,

@@ -27,11 +27,16 @@ Widget dashboardCard(
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              MtCustomfontBold(
-                text: label ?? 'Users',
-                fontsize: 11,
-                color: Mycolors.whitedim,
+              Expanded(
+                child: MtCustomfontBold(
+                  text: label ?? 'Users',
+                  fontsize: 11,
+                  color: Mycolors.whitedim,
+                  maxlines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
+              SizedBox(width: 4),
               Icon(
                 iconData ?? Icons.person,
                 size: 19,

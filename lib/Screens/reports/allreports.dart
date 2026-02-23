@@ -159,7 +159,12 @@ Widget reportCard(
                       //         ),
                       //       ),
                       MtCustomfontLight(
-                        text: getWhen(context, doc['time']),
+                        text: getWhen(
+                            context,
+                            doc['time'] is int
+                                ? DateTime.fromMillisecondsSinceEpoch(
+                                    doc['time'])
+                                : doc['time'].toDate()),
                         textalign: TextAlign.right,
                         color: Mycolors.greytext,
                       ),
@@ -172,7 +177,7 @@ Widget reportCard(
                 MtCustomfontRegular(
                   text:
                       '${getTranslatedForCurrentUser(context, 'xxsentbyxx')}   ' +
-                          doc['phone'],
+                          (doc['phone']?.toString() ?? ''),
                   textalign: TextAlign.left,
                   color: Mycolors.purple,
                   maxlines: 1,
@@ -196,7 +201,7 @@ Widget reportCard(
                   height: 7,
                 ),
                 MtCustomfontRegular(
-                  text: doc['type'],
+                  text: doc['type']?.toString() ?? '',
                   textalign: TextAlign.left,
                   color: Mycolors.grey,
                   maxlines: 1,

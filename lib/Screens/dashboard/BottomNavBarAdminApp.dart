@@ -53,9 +53,9 @@ class _MyBottomNavBarAdminAppState extends State<MyBottomNavBarAdminApp> {
       Admindashboard(
         prefs: widget.prefs,
       ),
-      AllCustomers(
+/*AllCustomers(
         currentuserid: Optionalconstants.currentAdminID,
-      ),
+      ),*/
 
       AllAgents(
         currentuserid: Optionalconstants.currentAdminID,
@@ -158,7 +158,7 @@ class _MyBottomNavBarAdminAppState extends State<MyBottomNavBarAdminApp> {
                             ),
                           ),
                         ),
-                        BottomNavigationBarItem(
+/*BottomNavigationBarItem(
                           icon: Padding(
                             padding: const EdgeInsets.only(top: 3, bottom: 3),
                             child: Icon(
@@ -177,7 +177,7 @@ class _MyBottomNavBarAdminAppState extends State<MyBottomNavBarAdminApp> {
                               color: Mycolors.bottomappbaricontext,
                             ),
                           ),
-                        ),
+                        ),*/
                         BottomNavigationBarItem(
                           icon: Padding(
                             padding: const EdgeInsets.only(top: 3, bottom: 3),

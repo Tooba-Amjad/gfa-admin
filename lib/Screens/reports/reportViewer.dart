@@ -32,7 +32,12 @@ void reportViewer(BuildContext context, var doc) {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          getWhen(context, doc['time']),
+                          getWhen(
+                              context,
+                              doc['time'] is int
+                                  ? DateTime.fromMillisecondsSinceEpoch(
+                                      doc['time'])
+                                  : doc['time'].toDate()),
                           style: TextStyle(
                             fontWeight: FontWeight.w700,
                             height: 1.25,
@@ -58,7 +63,7 @@ void reportViewer(BuildContext context, var doc) {
                     SizedBox(height: 30),
                     SelectableText(
                       '${getTranslatedForCurrentUser(context, 'xxsentbyxx')}   ' +
-                          doc['phone'],
+                          (doc['phone']?.toString() ?? ''),
                       textAlign: TextAlign.left,
                       style: TextStyle(
                           fontSize: 13,
@@ -67,7 +72,7 @@ void reportViewer(BuildContext context, var doc) {
                     ),
                     SizedBox(height: 30),
                     SelectableText(
-                      doc['type'],
+                      (doc['type']?.toString() ?? ''),
                       textAlign: TextAlign.left,
                       style: TextStyle(
                           fontSize: 15,
@@ -76,7 +81,7 @@ void reportViewer(BuildContext context, var doc) {
                     ),
                     SizedBox(height: 10),
                     SelectableText(
-                      '(${getTranslatedForCurrentUser(context, 'xxidxx')}  ${doc['id']})',
+                      '(${getTranslatedForCurrentUser(context, 'xxidxx')}  ${doc['id']?.toString() ?? ''})',
                       textAlign: TextAlign.left,
                       style: TextStyle(
                           fontSize: 13,
@@ -96,7 +101,7 @@ void reportViewer(BuildContext context, var doc) {
                     SizedBox(height: 10),
                     SelectableLinkify(
                       style: TextStyle(fontSize: 15, height: 1.4),
-                      text: doc['desc'],
+                      text: doc['desc'] ?? '',
                       onOpen: (link) async {
                         customUrlLauncher(link.url);
                       },

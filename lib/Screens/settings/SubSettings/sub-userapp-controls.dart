@@ -184,7 +184,7 @@ class _SubUserAppControlsState extends State<SubUserAppControls> {
                     docRef: widget.docref,
                   ));
             }),
-        customTile(
+/*customTile(
             isheading: true,
             margin: 8,
             iconsize: 35,
@@ -224,7 +224,7 @@ class _SubUserAppControlsState extends State<SubUserAppControls> {
                     currentuserid: widget.currentuserid,
                     docRef: widget.docref,
                   ));
-            }),
+            }),*/
         customTile(
             isheading: true,
             margin: 8,
@@ -325,7 +325,7 @@ class _SubUserAppControlsState extends State<SubUserAppControls> {
                   ),
                 ),
                 title: 'Demo User IDs',
-                subtitle: 'Demo Agents & Customer IDs',
+                subtitle: 'Demo Agents IDs',
                 leadingicondata: Icons.settings_applications_rounded,
                 leadingiconcolor: widget.iconcolor,
                 ontap: () {

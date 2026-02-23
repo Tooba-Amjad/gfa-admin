@@ -919,7 +919,7 @@ class _GroupChatPageState extends State<GroupChatPage>
                       height: 10,
                     ),
                     Image.asset(
-                      'assets/images/mapview.jpg',
+                      'assets/COMMON_ASSETS/mapview.jpg',
                       width: MediaQuery.of(this.context).size.width / 1.7,
                       height:
                           (MediaQuery.of(this.context).size.width / 1.7) * 0.6,
@@ -927,12 +927,12 @@ class _GroupChatPageState extends State<GroupChatPage>
                   ],
                 )
               : Image.asset(
-                  'assets/images/mapview.jpg',
+                  'assets/COMMON_ASSETS/mapview.jpg',
                   width: MediaQuery.of(this.context).size.width / 1.7,
                   height: (MediaQuery.of(this.context).size.width / 1.7) * 0.6,
                 )
           : Image.asset(
-              'assets/images/mapview.jpg',
+              'assets/COMMON_ASSETS/mapview.jpg',
               width: MediaQuery.of(this.context).size.width / 1.7,
               height: (MediaQuery.of(this.context).size.width / 1.7) * 0.6,
             ),

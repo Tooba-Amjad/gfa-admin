@@ -271,7 +271,7 @@ class _RoleManagerState extends State<RoleManager> {
                                 ),
                                 color: Colors.white,
                               ),
-                              width: 0.15 * w,
+                              width: 0.2 * w,
                               child: Padding(
                                 padding: const EdgeInsets.all(7.0),
                                 child: Text(
@@ -298,7 +298,7 @@ class _RoleManagerState extends State<RoleManager> {
                                 ),
                                 color: Colors.white,
                               ),
-                              width: 0.15 * w,
+                              width: 0.2 * w,
                               child: Padding(
                                 padding: const EdgeInsets.all(0.0),
                                 child: Text(
@@ -325,7 +325,7 @@ class _RoleManagerState extends State<RoleManager> {
                                 ),
                                 color: Colors.white,
                               ),
-                              width: 0.15 * w,
+                              width: 0.2 * w,
                               child: Padding(
                                 padding: const EdgeInsets.all(7.0),
                                 child: Text(
@@ -342,7 +342,7 @@ class _RoleManagerState extends State<RoleManager> {
                               ),
                             ),
                           ),
-                          Center(
+                          /*Center(
                             child: Container(
                               height: 60,
                               alignment: Alignment.center,
@@ -360,7 +360,7 @@ class _RoleManagerState extends State<RoleManager> {
                                 ),
                               ),
                             ),
-                          )
+                          )*/
                         ]
                       : [
                           Center(
@@ -398,7 +398,7 @@ class _RoleManagerState extends State<RoleManager> {
                                 ),
                                 color: Colors.white,
                               ),
-                              width: w / 6,
+                              width: w / 4,
                               child: Padding(
                                 padding: const EdgeInsets.all(7.0),
                                 child: Text(
@@ -425,7 +425,7 @@ class _RoleManagerState extends State<RoleManager> {
                                 ),
                                 color: Colors.white,
                               ),
-                              width: w / 6,
+                              width: w / 4,
                               child: Padding(
                                 padding: const EdgeInsets.all(7.0),
                                 child: Text(
@@ -442,7 +442,7 @@ class _RoleManagerState extends State<RoleManager> {
                               ),
                             ),
                           ),
-                          Center(
+                          /*Center(
                             child: Container(
                               height: 40,
                               alignment: Alignment.center,
@@ -460,7 +460,7 @@ class _RoleManagerState extends State<RoleManager> {
                                 ),
                               ),
                             ),
-                          )
+                          )*/
                         ],
                 ),
         ),
@@ -848,7 +848,7 @@ class _RoleManagerState extends State<RoleManager> {
                         : SizedBox(),
 
                     // //* -------------------------------
-                    Column(children: [
+                    /*Column(children: [
                       sectionHeader(
                           // russian lang has different tag for this string
                           Utils.checkIfNull(getTranslatedForCurrentUser(
@@ -1066,7 +1066,7 @@ class _RoleManagerState extends State<RoleManager> {
                             userAppSettings!.departmentBasedContent!,
                         latestsettings: userAppSettings!.toMap(),
                       ),
-                    ]),
+                    ]),*/
                     // //* -------------------------------
 
                     Column(children: [

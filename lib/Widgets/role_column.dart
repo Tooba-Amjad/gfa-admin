@@ -115,7 +115,7 @@ class RoleColumn extends StatelessWidget {
                       ),
                       color: Colors.white,
                     ),
-                    width: w * 0.15,
+                    width: w * 0.2,
                     child: Padding(
                         padding: const EdgeInsets.all(0.0),
                         child: key1secondadmin == null
@@ -153,7 +153,7 @@ class RoleColumn extends StatelessWidget {
                       ),
                       color: Colors.white,
                     ),
-                    width: w * 0.15,
+                    width: w * 0.2,
                     child: Padding(
                         padding: const EdgeInsets.all(0.0),
                         child: key4departemtmanager == null
@@ -191,7 +191,7 @@ class RoleColumn extends StatelessWidget {
                       ),
                       color: Colors.white,
                     ),
-                    width: w * 0.15,
+                    width: w * 0.2,
                     child: Padding(
                         padding: const EdgeInsets.all(0.0),
                         child: key2agent == null
@@ -219,7 +219,7 @@ class RoleColumn extends StatelessWidget {
                               )),
                   ),
                 ),
-                Center(
+                /*Center(
                   child: Container(
                     alignment: Alignment.center,
                     height: 60,
@@ -256,7 +256,7 @@ class RoleColumn extends StatelessWidget {
                                     : Mycolors.grey.withOpacity(0.5),
                               )),
                   ),
-                ),
+                ),*/
               ]
             : [
                 Center(
@@ -319,7 +319,7 @@ class RoleColumn extends StatelessWidget {
                       ),
                       color: Colors.white,
                     ),
-                    width: w / 6,
+                    width: w / 4,
                     child: Padding(
                         padding: const EdgeInsets.all(0.0),
                         child: key1secondadmin == null
@@ -357,7 +357,7 @@ class RoleColumn extends StatelessWidget {
                       ),
                       color: Colors.white,
                     ),
-                    width: w / 6,
+                    width: w / 4,
                     child: Padding(
                         padding: const EdgeInsets.all(0.0),
                         child: key2agent == null
@@ -385,7 +385,7 @@ class RoleColumn extends StatelessWidget {
                               )),
                   ),
                 ),
-                Center(
+                /*Center(
                   child: Container(
                     alignment: Alignment.center,
                     height: 60,
@@ -422,7 +422,7 @@ class RoleColumn extends StatelessWidget {
                                     : Mycolors.grey.withOpacity(0.5),
                               )),
                   ),
-                ),
+                ),*/
               ],
       ),
     );

@@ -601,7 +601,7 @@ class _UserLoginSettingsState extends State<UserLoginSettings> {
                             }),
                     //* -------------------------------
 
-                    sectionHeader(
+/*sectionHeader(
                         '${getTranslatedForCurrentUser(this.context, 'xxcustomerxx').toUpperCase()} ${getTranslatedForCurrentUser(this.context, 'xxloginxx').toUpperCase()}'),
                     customTile(
                         margin: 5,
@@ -753,7 +753,7 @@ class _UserLoginSettingsState extends State<UserLoginSettings> {
                                 .replaceAll('(####)',
                                     '${getTranslatedForCurrentUser(this.context, 'xxcustomerxx')}'),
                             leadingicondata:
-                                Icons.settings_applications_rounded),
+                                Icons.settings_applications_rounded),*/
 
                     SizedBox(
                       height: 20,
