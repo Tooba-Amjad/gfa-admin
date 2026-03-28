@@ -27,6 +27,15 @@ class AppConstants {
   static String demoadminemail =
       "demo@tctech.in"; // you must create this user manually in Firebase Dashboard -> Authentication -> Users -> "Add User"  (using this email and password below)
   static String demoadminpassword = "123456";
+
+  /// Google Drive OAuth: Web client ID (for server auth code / call recordings storage).
+  /// Create an OAuth 2.0 **Web application** client in Google Cloud Console (APIs & Credentials → Credentials → Create credentials → OAuth client ID → Web application).
+  static String googleDriveWebClientId = '509787805851-jihun17ec3rmddqjsulr4dcffnn3tiig.apps.googleusercontent.com';
+
+  /// Google Drive OAuth: Authorized redirect URI. This must match exactly what your backend (Cloud Function exchangeCodeForTokens) sends when exchanging the auth code.
+  /// Use your GFA Chat web URL (e.g. https://gfa-chat-app.web.app). No trailing slash.
+  /// In Google Cloud Console → Credentials → your **Web** client → Authorized redirect URIs: add this exact URL. The 500 error is usually caused by this URI missing or differing.
+  static String googleDriveRedirectUri = 'https://gfa-chat-app.web.app';
 }
 
 const DefaulLANGUAGEfileCodeForCURRENTuser = 'en';

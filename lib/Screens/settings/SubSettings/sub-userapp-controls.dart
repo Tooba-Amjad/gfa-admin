@@ -6,6 +6,7 @@ import 'package:thinkcreative_technologies/Configs/my_colors.dart';
 import 'package:thinkcreative_technologies/Localization/language_constants.dart';
 import 'package:thinkcreative_technologies/Screens/initialization/initialization_constant.dart';
 import 'package:thinkcreative_technologies/Screens/settings/SubSettings/agentchat_groupchat_settings.dart';
+import 'package:thinkcreative_technologies/Screens/settings/SubSettings/call_recordings_storage_page.dart';
 import 'package:thinkcreative_technologies/Screens/settings/SubSettings/custom_tabs_settings.dart';
 import 'package:thinkcreative_technologies/Screens/settings/SubSettings/demo_userids.dart';
 import 'package:thinkcreative_technologies/Screens/settings/SubSettings/terms_privacy_settings.dart';
@@ -257,6 +258,38 @@ class _SubUserAppControlsState extends State<SubUserAppControls> {
                   AgentChatGroupChatSettings(
                     currentuserid: widget.currentuserid,
                     docRef: widget.docref,
+                  ));
+            }),
+        customTile(
+            isheading: true,
+            margin: 8,
+            iconsize: 35,
+            leadingWidget: Container(
+              decoration: boxDecoration(
+                radius: 9,
+                color: Colors.green[700],
+                showShadow: false,
+                bgColor: Colors.green[700]!,
+              ),
+              height: 40,
+              width: 40,
+              child: Center(
+                child: Icon(
+                  Icons.folder_special,
+                  color: Colors.white,
+                  size: 22,
+                ),
+              ),
+            ),
+            title: 'Data backup',
+            subtitle: 'Connect Google Drive to backup your data (chats, recordings etc.)',
+            leadingicondata: Icons.settings_applications_rounded,
+            leadingiconcolor: widget.iconcolor,
+            ontap: () {
+              pageNavigator(
+                  this.context,
+                  CallRecordingsStoragePage(
+                    currentuserid: widget.currentuserid,
                   ));
             }),
         customTile(

@@ -50,6 +50,9 @@ class DbPaths {
   //----
   static final String collectionproductsellingmodule = '53968';
   static final String moduleSettings = 'ms';
+
+  /// Drive config for call recordings storage (userapp/drive_config)
+  static final String driveConfig = 'drive_config';
 }
 
 class DbStoragePaths {
